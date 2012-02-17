@@ -1,7 +1,11 @@
+#!/usr/bin/env python
+
 from twisted.internet.protocol import DatagramProtocol
 from twisted.internet import reactor, defer
 
 from collections import deque
+
+import time
 
 class iViewXception(Exception):
     def __init__(self, cmd, error):
@@ -12,62 +16,69 @@ class iViewXception(Exception):
 
 class iViewX(DatagramProtocol):
     
-    deferreds = deque()
+    deferreds = {}
 
     def startProtocol(self):
-        host = '128.113.89.129'
+        host = '128.113.89.57'
         port = 4444
 
         self.transport.connect(host, port)
         self.test()
 
     def datagramReceived(self, data, (host, port)):
-        print data
-        #uid = uuid.uuid4()
-        #print data.split('\n\r\n')[0].split()
+        data = data.split()
+        if self.deferreds.has_key(data[0]):
+            cb = self.deferreds[data[0]].pop()
+            cb.callback(data)
+        else:
+            self.dumpReply(data)
 
     def connectionRefused(self):
         print "No one listening"
+        
+    def dumpReply(self, reply):
+        print reply
 
-    def sendCommand(self, cmd):
-        #d = defer.Deferred()
-        #d.addCallback(cb)
-        #self.deferreds.appendleft(d)
-        self.transport.write('%s\n' % cmd)
-        #return d
+    def sendCommand(self, *args, **kwargs):
+        if not self.deferreds.has_key(args[0]):
+            self.deferreds[args[0]] = deque()
+        d = defer.Deferred()
+        if kwargs['callback']:
+            d.addCallback(kwargs['callback'])
+        else:
+            d.addCallback(self.dumpReply)
+        self.deferreds[args[0]].appendleft(d)
+        self.transport.write('%s\n' % ' '.join(map(str,args)))
+        return d
         
-    """
-    Data output
-    """
+    # ~~~~~~~~~~~~~~~~~~~~~~ #
+    # Data output
+    # ~~~~~~~~~~~~~~~~~~~~~~ #
         
-    def setDataFormat(self, frm):
+    def setDataFormat(self, frm, callback=None):
         if not isinstance(frm, str):
             raise iViewXception('ET_FRM', 'Not a string')
-        self.transport.write('ET_FRM "%s"\n' % frm)
+        self.sendCommand('ET_FRM', '"%s"' % frm, callback=callback)
         
-    def startDataStreaming(self, framerate=0):
+    def startDataStreaming(self, framerate=0, callback=None):
         if isinstance(framerate, int) and framerate > 0:
-            self.transport.write('ET_STR %d\n' % framerate)
+            self.sendCommand('ET_STR', framerate=framerate, callback=callback)
         else:
-            self.transport.write('ET_STR\n')
+            self.sendCommand('ET_STR', callback=callback)
             
-    def stopDataStreaming(self):
-        self.transport.write('ET_EST\n')
-                
-    def getSampleRate(self):
-        self.sendCommand('ET_SRT')
+    def stopDataStreaming(self, callback=None):
+        self.sendCommand('ET_EST', callback=callback)
+
+    def getSampleRate(self, callback=None):
+        self.sendCommand('ET_SRT', callback=callback)
 
     def test(self):
-        #self.setDataFormat('%TS %PX %PY %EZ')
-        #self.startDataStreaming()
-        #sleep(1)
-        #self.stopDataStreaming()
-        self.getSampleRate()
-        #self.setSizeCalibrationArea(1280,1024)
-        #calPnts = 5
-        #self.startCalibration(calPnts)
-        #for i in range(0,calPnts):
-        #    self.acceptCalibrationPoint()   
+        reactor.callLater(0, self.setDataFormat, '%TS %PX %PY %EZ')
+        reactor.callLater(0, self.startDataStreaming, framerate=1)
+        reactor.callLater(1, self.setDataFormat, '%TS %PX %PY')
+        reactor.callLater(2, self.setDataFormat, '%TS %PX %PY %EZ')
+        reactor.callLater(3, self.stopDataStreaming)
+        reactor.callLater(3, self.getSampleRate)
     
         
 if __name__ == '__main__':
