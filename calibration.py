@@ -2,12 +2,12 @@ from exception import iViewXception
 
 class CalibrationCommands(object):
     
-    def startCalibration(self, points, eye=1):
+    def startCalibration(self, points, eye=0):
         if not (points == 2 or points == 5 or points == 9 or points == 13):
             raise iViewXception('ET_CAL', 'Invalid points')
-        if not (eye == 1 or eye == 2):
+        if (not isinstance(eye, int) or eye < 0 or eye > 2):
             raise iViewXception('ET_CAL', 'Invalid eye')
-        if self.binocular:
+        if (eye == 1 or eye == 2):
             self.transport.write('ET_CAL %d %d\n' % (points, eye))
         else:
             self.transport.write('ET_CAL %d\n' % points)
