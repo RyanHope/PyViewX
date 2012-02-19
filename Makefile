@@ -7,7 +7,7 @@ ALLSPHINXOPTS   = -d $(BUILDDIR)/doctrees -D latex_paper_size=letter $(SPHINXOPT
 .PHONY: clean html text readme
 
 readme: text
-	cp -r _build/text/Readme.txt Readme.rst
+	cp -r _build/text/index.txt Readme.rst
 
 html:
 	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) $(BUILDDIR)/html
@@ -26,4 +26,6 @@ latexpdf:
 	@echo "pdflatex finished; the PDF files are in $(BUILDDIR)/latex."
 
 clean:
-	-rm -rf $(BUILDDIR)/*
+	-rm -rf $(BUILDDIR)
+	-rm -rf Readme.rst
+	-rm -rf `find . -name *.pyc`
