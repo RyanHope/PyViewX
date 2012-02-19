@@ -19,5 +19,11 @@ text:
 	@echo
 	@echo "Build finished. The text files are in $(BUILDDIR)/text."
 
+latexpdf:
+	$(SPHINXBUILD) -b latex $(ALLSPHINXOPTS) $(BUILDDIR)/latex
+	@echo "Running LaTeX files through pdflatex..."
+	$(MAKE) -C $(BUILDDIR)/latex all-pdf
+	@echo "pdflatex finished; the PDF files are in $(BUILDDIR)/latex."
+
 clean:
 	-rm -rf $(BUILDDIR)/*
