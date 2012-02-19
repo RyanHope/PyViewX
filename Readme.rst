@@ -2,11 +2,21 @@
 Welcome to PyViewX's documentation!
 ***********************************
 
+* *Index*
+
+* *Module Index*
+
+* *Search Page*
+
+
+PyViewX
+=======
+
 A Python package for communicating with the SMI iViewX server via UDP.
 
 
 iViewXClient
-============
+------------
 
 class class PyViewX.client.iViewXClient
 
@@ -19,13 +29,13 @@ class class PyViewX.client.iViewXClient
       number of the next calibration point if successful. Available
       only during calibration.
 
-      Parameters:
-         **callback** (*function.*) -- A function to call with
-         response.
-
       *The command is sent by iViewX every time a calibration point is
       accepted during calibration, either manually by the user or
       automatically.*
+
+      Parameters:
+         **callback** (*function.*) -- A function to call with
+         response.
 
    cancelCalibration(callback=None)
 
@@ -37,11 +47,12 @@ class class PyViewX.client.iViewXClient
 
    getCalibrationParam(param, callback=None)
 
-      Get calibration parameter.
+      Gets calibration parameters.
+
+      Note: See "setCalibrationParam()" for parameter values.
 
       Parameters:
-         * **param** (*int.*) -- Numeric ID of calibration parameter;
-           valid options are 0, 1, 2 and 3.
+         * **param** (*int.*) -- Numeric ID of calibration parameter.
 
          * **callback** (*function.*) -- A function to call with
            response.
@@ -111,6 +122,8 @@ class class PyViewX.client.iViewXClient
 
       Sets the position of a given calibration point.
 
+      Note: Not available on RED systems.
+
       Parameters:
          * **point** (*int.*) -- Calibration point.
 
@@ -122,8 +135,6 @@ class class PyViewX.client.iViewXClient
 
          * **callback** (*function.*) -- A function to call with
            response.
-
-      Note: Not available on RED systems.
 
    setDataFormat(frm, callback=None)
 
@@ -170,6 +181,9 @@ class class PyViewX.client.iViewXClient
 
       Sets the size of the calibration area.
 
+      *The command is sent by iViewX when the size of the calibration
+      area is changed.*
+
       Parameters:
          * **width** (*int.*) -- Width of calibration area in pixels.
 
@@ -178,9 +192,6 @@ class class PyViewX.client.iViewXClient
 
          * **callback** (*function.*) -- A function to call with
            response.
-
-      *The command is sent by iViewX when the size of the calibration
-      area is changed.*
 
    startCalibration(points, eye=0, callback=None)
 
@@ -214,11 +225,11 @@ class class PyViewX.client.iViewXClient
       calibration point, which is usually the center point, as
       calibration point.
 
+      Note: Only for hi-speed systems.
+
       Parameters:
          **callback** (*function.*) -- A function to call with
          response.
-
-      Note: Only for hi-speed systems.
 
    stopDataStreaming()
 

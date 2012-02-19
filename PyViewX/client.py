@@ -19,7 +19,7 @@
 
 """
 .. module:: client
-	:platform: Unix
+	:platform: Linux, MacOSX
 
 .. moduleauthor:: Ryan Hope <rmh3093@gmail.com>
 """
@@ -95,11 +95,11 @@ class iViewXClient( DatagramProtocol ):
 		and switches to the next calibration point. Returns the number of the next
 		calibration point if successful. Available only during calibration.
 
-		:param callback: A function to call with response.
-		:type callback: function.
-
 		*The command is sent by iViewX every time a calibration point is accepted
 		during calibration, either manually by the user or automatically.*
+
+		:param callback: A function to call with response.
+		:type callback: function.
 
 		"""
 		self.__sendCommand( 'ET_ACC', callback = callback )
@@ -114,9 +114,12 @@ class iViewXClient( DatagramProtocol ):
 		self.__sendCommand( 'ET_BRK', callback = callback )
 
 	def getCalibrationParam( self, param, callback = None ):
-		"""Get calibration parameter.
+		"""Gets calibration parameters.
 
-		:param param: Numeric ID of calibration parameter; valid options are 0, 1, 2 and 3.
+		.. note::
+			See :func:`setCalibrationParam` for parameter values.
+
+		:param param: Numeric ID of calibration parameter.
 		:type param: int.
 		:param callback: A function to call with response.
 		:type callback: function.
@@ -155,14 +158,14 @@ class iViewXClient( DatagramProtocol ):
 	def setSizeCalibrationArea( self, width, height, callback = None ):
 		"""Sets the size of the calibration area.
 
+		*The command is sent by iViewX when the size of the calibration area is changed.*
+
 		:param width: Width of calibration area in pixels.
 		:type width: int.
 		:param height: Height of calibration area in pixels.
 		:type height: int.
 		:param callback: A function to call with response.
 		:type callback: function.
-
-		*The command is sent by iViewX when the size of the calibration area is changed.*
 
 		"""
 		if not ( isinstance( width, int ) and isinstance( height, int ) and width > 0 and height > 0 ):
@@ -194,6 +197,9 @@ class iViewXClient( DatagramProtocol ):
 	def setCalibrationPoint( self, point, x, y, callback = None ):
 		"""Sets the position of a given calibration point.
 
+		.. note::
+			Not available on RED systems.
+
 		:param point: Calibration point.
 		:type point: int.
 		:param x: Horizontal position of calibration point in pixels.
@@ -203,8 +209,6 @@ class iViewXClient( DatagramProtocol ):
 		:param callback: A function to call with response.
 		:type callback: function.
 
-		.. note::
-			Not available on RED systems.
 		"""
 		if not ( isinstance( point, int ) and point > 0 and point < 14 and isinstance( x, int ) and isinstance( y, int ) and x > 0 and y > 0 ):
 			raise PyViewXception( 'ET_PNT', 'Invalid point' )
@@ -215,13 +219,11 @@ class iViewXClient( DatagramProtocol ):
 		calibration of the system. Drift correction uses the first calibration
 		point, which is usually the center point, as calibration point.
 
-
-		:param callback: A function to call with response.
-		:type callback: function.
-
 		.. note::
 			Only for hi-speed systems.
 
+		:param callback: A function to call with response.
+		:type callback: function.
 		"""
 		self.__sendCommand( 'ET_RCL', callback = callback )
 
@@ -301,6 +303,7 @@ class iViewXClient( DatagramProtocol ):
 
 		:param frm: The format of the streamed data.
 		:type frm: str.
+
 		"""
 		if not isinstance( frm, str ):
 			raise PyViewXception( 'ET_FRM', 'Not a string' )
@@ -313,16 +316,17 @@ class iViewXClient( DatagramProtocol ):
 
 		:param framerate: Set framerate -- 1..SampleRate. [*optional*]
 		:type framerate: int.
-		"""
 
+		"""
 		if isinstance( framerate, int ) and framerate > 0:
 			self.__sendCommand( 'ET_STR', framerate = framerate )
 		else:
 			self.__sendCommand( 'ET_STR' )
 
 	def stopDataStreaming( self ):
-		"""Stops continuous data output (streaming)."""
+		"""Stops continuous data output (streaming).
 
+		"""
 		self.__sendCommand( 'ET_EST' )
 
 	#===========================================================================
