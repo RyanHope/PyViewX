@@ -32,16 +32,23 @@ from collections import deque
 from exceptions import PyViewXception
 
 class iViewXClient( DatagramProtocol ):
-	"""Handles all communication with the iViewX server."""
+	"""Creates an iViewXClient object which handles all communication with
+	the iViewX server
 
+	:param remoteHost: The hostname of the iViewX server.
+	:type remoteHost: str.
+	:param remotePort: The port number the iViewX server listens on for incommming commands.
+	:type remotePort: int.
+
+	"""
 	deferreds = {}
 
-	def startProtocol( self ):
-		host = '128.113.89.57'
-		port = 4444
+	def __init__( self, remoteHost, remotePort ):
+		self.remoteHost = remoteHost
+		self.remotePort = remotePort
 
-		self.transport.connect( host, port )
-		self.test()
+	def startProtocol( self ):
+		self.transport.connect( self.remoteHost, self.remotePort )
 
 	def connectionRefused( self ):
 		print "No one listening"
@@ -58,7 +65,7 @@ class iViewXClient( DatagramProtocol ):
 			print ['UNHANDLED', data]
 
 	def __sendCommand( self, *args, **kwargs ):
-		if kwargs['callback']:
+		if kwargs.has_key( 'callback' ) and kwargs['callback']:
 			if not self.deferreds.has_key( args[0] ):
 				self.deferreds[args[0]] = deque()
 			d = defer.Deferred()

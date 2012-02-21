@@ -18,9 +18,16 @@ A Python package for communicating with the SMI iViewX server via UDP.
 iViewXClient
 ------------
 
-class class PyViewX.client.iViewXClient
+class class PyViewX.client.iViewXClient(remoteHost, remotePort)
 
-   Handles all communication with the iViewX server.
+   Creates an iViewXClient object which handles all communication with
+   the iViewX server
+
+   Parameters:
+      * **remoteHost** (*str.*) -- The hostname of the iViewX server.
+
+      * **remotePort** (*int.*) -- The port number the iViewX server
+        listens on for incommming commands.
 
    acceptCalibrationPoint(callback=None)
 
