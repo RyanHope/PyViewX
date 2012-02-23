@@ -3,17 +3,28 @@
 from twisted.internet import reactor
 from PyViewX.client import iViewXClient
 import pygame
+import sys
 
 pygame.init()
 
-client = iViewXClient( '128.113.89.129', 4444 )
+client = iViewXClient( '127.0.0.1', 4444 )
 
 calibrationPoints = []
 surface = None
+count = 0
 
 @client.subscribe( needs = ['ET_SPL'] )
 def iViewXEvent( *args, **kwargs ):
-	print reactor.seconds(), kwargs['ET_SPL']
+        global surface
+        global count
+        print reactor.seconds(), kwargs['ET_SPL']
+        if count == 0:
+                surface.fill( ( 51, 51, 153 ) )
+                pygame.draw.circle( surface, ( 255, 0, 0 ), (int(float( kwargs['ET_SPL'][1] )), int(float( kwargs['ET_SPL'][3] ))), 5 )
+                pygame.display.flip()
+        count += 1
+        if count > 15:
+                count = 0
 
 @client.subscribe( needs = ['ET_SRT'] )
 def iViewXEvent( *args, **kwargs ):
@@ -48,23 +59,25 @@ def iViewXEvent( *args, **kwargs ):
 	point = int( kwargs['ET_CHG'][0] )
 	print reactor.seconds(), point
 	surface.fill( ( 51, 51, 153 ) )
-	pygame.draw.circle( surface, ( 255, 255, 0 ), calibrationPoints[point], 10 )
-	pygame.draw.circle( surface, ( 0, 0, 0 ), calibrationPoints[point], 5 )
+	pygame.draw.circle( surface, ( 255, 255, 0 ), calibrationPoints[point-1], 10 )
+	pygame.draw.circle( surface, ( 0, 0, 0 ), calibrationPoints[point-1], 5 )
 	pygame.display.flip()
 	reactor.callLater( 2, client.acceptCalibrationPoint )
 
+@client.subscribe( needs = ['ET_FIN'] )
+def iViewXEvent( *args, **kwargs ):
+	#pygame.display.quit()
+	reactor.callLater( 0, client.requestCalibrationResults )
+	reactor.callLater( 0, client.setDataFormat, '%TS %SX %SY' )
+	reactor.callLater( 0, client.startDataStreaming, framerate = 30 )
 
+reactor.listenUDP( 5555, client )
 
-reactor.listenUDP( 4444, client )
+reactor.callLater( 0, client.stopDataStreaming )
+reactor.callLater( 0, client.getSampleRate )
+reactor.callLater( 0, client.setSizeCalibrationArea, 1280, 1024 )
+reactor.callLater( 0, client.startCalibration, 5, 1 )
 
-#reactor.callLater( 1, client.setDataFormat, '%TS %PX %PY %EZ' )
-reactor.callLater( 1, client.startDataStreaming, framerate = 1 )
-#reactor.callLater( 2, client.setDataFormat, '%TS %PX %PY' )
-#reactor.callLater( 3, client.setDataFormat, '%TS %PX %PY %EZ' )
-reactor.callLater( 4, client.stopDataStreaming )
-reactor.callLater( 4, client.getSampleRate )
-
-reactor.callLater( 4, client.setSizeCalibrationArea, 1024, 768 )
-reactor.callLater( 6, client.startCalibration, 5, 1 )
+reactor.callLater( 60, sys.exit )
 
 reactor.run()

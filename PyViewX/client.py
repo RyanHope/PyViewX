@@ -284,7 +284,7 @@ class iViewXClient( DatagramProtocol, Pangler ):
 			raise PyViewXception( 'ET_VLX', 'Invalid point' )
 		self._sendCommand( 'ET_VLX', x, y, callback = callback )
 
-	def requestCalibrationResults( self, callback = None ):
+	def requestCalibrationResults( self ):
 		"""Requests iViewX for calibration results and returns the gaze data
 		aquired for a specific calibration point.
 
@@ -292,7 +292,7 @@ class iViewXClient( DatagramProtocol, Pangler ):
 		:type callback: function.
 
 		"""
-		self._sendCommand( 'ET_RES', callback = callback )
+		self._sendCommand( 'ET_RES' )
 
 	#===========================================================================
 	# Data output
