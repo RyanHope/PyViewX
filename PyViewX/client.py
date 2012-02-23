@@ -25,13 +25,15 @@
 """
 
 from twisted.internet.protocol import DatagramProtocol
-from twisted.internet import reactor, defer
+from twisted.internet import defer
 
 from collections import deque
 
 from exceptions import PyViewXception
 
-class iViewXClient( DatagramProtocol ):
+from panglery import Pangler
+
+class iViewXClient( DatagramProtocol, Pangler ):
 	"""Creates an iViewXClient object which handles all communication with
 	the iViewX server
 
@@ -43,9 +45,10 @@ class iViewXClient( DatagramProtocol ):
 	"""
 	deferreds = {}
 
-	def __init__( self, remoteHost, remotePort ):
+	def __init__( self, remoteHost, remotePort, *args, **kwargs ):
 		self.remoteHost = remoteHost
 		self.remotePort = remotePort
+		super( iViewXClient, self ).__init__( *args, **kwargs )
 
 	def startProtocol( self ):
 		self.transport.connect( self.remoteHost, self.remotePort )
@@ -53,25 +56,40 @@ class iViewXClient( DatagramProtocol ):
 	def connectionRefused( self ):
 		print "No one listening"
 
-	def __noop( self ):
-		pass
+	def _noop( self, data ):
+		print ['UNHANDLED', data]
 
 	def datagramReceived( self, data, ( host, port ) ):
 		data = data.split()
+		self.trigger( **{data[0]: data[1:]} )
+		#print data
+		"""cb = self._noop
 		if self.deferreds.has_key( data[0] ):
-			cb = self.deferreds[data[0]].pop()
-			cb.callback( data )
-		else:
-			print ['UNHANDLED', data]
+			cb = self.deferreds[data[0]].pop().callback
+		if hasattr( self, '_%s' % data[0] ):
+			data = getattr( self, '_%s' % data[0] )( data[1:] )
+		cb( data )"""
 
-	def __sendCommand( self, *args, **kwargs ):
-		if kwargs.has_key( 'callback' ) and kwargs['callback']:
+	def _sendCommand( self, *args, **kwargs ):
+		"""if kwargs.has_key( 'callback' ) and kwargs['callback']:
 			if not self.deferreds.has_key( args[0] ):
 				self.deferreds[args[0]] = deque()
 			d = defer.Deferred()
 			d.addCallback( kwargs['callback'] )
-			self.deferreds[args[0]].appendleft( d )
+			self.deferreds[args[0]].appendleft( d )"""
 		self.transport.write( '%s\n' % ' '.join( map( str, args ) ) )
+
+
+
+	#===========================================================================
+	# Response parsers
+	#===========================================================================
+
+	def _ET_SRT( self, data ):
+		return int( data[0] )
+
+	def _ET_STR( self, data ):
+		return int( data[0] )
 
 	#===========================================================================
 	# Calibration
@@ -93,11 +111,11 @@ class iViewXClient( DatagramProtocol ):
 		if ( not isinstance( eye, int ) or eye < 0 or eye > 2 ):
 			raise PyViewXception( 'ET_CAL', 'Invalid eye' )
 		if ( eye == 1 or eye == 2 ):
-			self.__sendCommand( 'ET_CAL', points, eye, callback = callback )
+			self._sendCommand( 'ET_CAL', points, eye, callback = callback )
 		else:
-			self.__sendCommand( 'ET_CAL', points, callback = callback )
+			self._sendCommand( 'ET_CAL', points, callback = callback )
 
-	def acceptCalibrationPoint( self, callback = None ):
+	def acceptCalibrationPoint( self ):
 		"""Accepts the current calibration point during the calibration process,
 		and switches to the next calibration point. Returns the number of the next
 		calibration point if successful. Available only during calibration.
@@ -109,7 +127,7 @@ class iViewXClient( DatagramProtocol ):
 		:type callback: function.
 
 		"""
-		self.__sendCommand( 'ET_ACC', callback = callback )
+		self._sendCommand( 'ET_ACC' )
 
 	def cancelCalibration( self, callback = None ):
 		"""Cancels the calibration procedure.
@@ -118,7 +136,7 @@ class iViewXClient( DatagramProtocol ):
 		:type callback: function.
 
 		"""
-		self.__sendCommand( 'ET_BRK', callback = callback )
+		self._sendCommand( 'ET_BRK', callback = callback )
 
 	def getCalibrationParam( self, param, callback = None ):
 		"""Gets calibration parameters.
@@ -134,7 +152,7 @@ class iViewXClient( DatagramProtocol ):
 		"""
 		if ( param < 0 or param > 3 ):
 			raise PyViewXception( 'ET_CPA', 'Invalid param' )
-		self.__sendCommand( 'ET_CPA', param, callback = callback )
+		self._sendCommand( 'ET_CPA', param, callback = callback )
 
 	def setCalibrationParam( self, param, value, callback = None ):
 		"""Sets calibration parameters.
@@ -160,7 +178,7 @@ class iViewXClient( DatagramProtocol ):
 			raise PyViewXception( 'ET_CPA', 'Invalid param' )
 		if not isinstance( value, int ):
 			raise PyViewXception( 'ET_CPA', 'Value not boolean' )
-		self.__sendCommand( 'ET_CPA', param, value, callback = callback )
+		self._sendCommand( 'ET_CPA', param, value, callback = callback )
 
 	def setSizeCalibrationArea( self, width, height, callback = None ):
 		"""Sets the size of the calibration area.
@@ -177,7 +195,7 @@ class iViewXClient( DatagramProtocol ):
 		"""
 		if not ( isinstance( width, int ) and isinstance( height, int ) and width > 0 and height > 0 ):
 			raise PyViewXception( 'ET_CSZ', 'Invalid dimension' )
-		self.__sendCommand( 'ET_CSZ', width, height, callback = callback )
+		self._sendCommand( 'ET_CSZ', width, height, callback = callback )
 
 	def resetCalibrationPoints( self, callback = None ):
 		"""Sets all calibration points to default positions.
@@ -186,7 +204,7 @@ class iViewXClient( DatagramProtocol ):
 		:type callback: function.
 
 		"""
-		self.__sendCommand( 'ET_DEF', callback = callback )
+		self._sendCommand( 'ET_DEF', callback = callback )
 
 	def setCalibrationCheckLevel( self, value, callback = None ):
 		"""Sets check level for calibration. Returns the new check level is successful.
@@ -199,7 +217,7 @@ class iViewXClient( DatagramProtocol ):
 		"""
 		if ( value < 0 or value > 3 ):
 			raise PyViewXception( 'ET_LEV', 'Invalid value' )
-		self.__sendCommand( 'ET_LEV', value, callback = callback )
+		self._sendCommand( 'ET_LEV', value, callback = callback )
 
 	def setCalibrationPoint( self, point, x, y, callback = None ):
 		"""Sets the position of a given calibration point.
@@ -219,7 +237,7 @@ class iViewXClient( DatagramProtocol ):
 		"""
 		if not ( isinstance( point, int ) and point > 0 and point < 14 and isinstance( x, int ) and isinstance( y, int ) and x > 0 and y > 0 ):
 			raise PyViewXception( 'ET_PNT', 'Invalid point' )
-		self.__sendCommand( 'ET_PNT', point, x, y, callback = callback )
+		self._sendCommand( 'ET_PNT', point, x, y, callback = callback )
 
 	def startDriftCorrection( self, callback = None ):
 		"""Starts drift correction. Drift correction is available after a
@@ -232,7 +250,7 @@ class iViewXClient( DatagramProtocol ):
 		:param callback: A function to call with response.
 		:type callback: function.
 		"""
-		self.__sendCommand( 'ET_RCL', callback = callback )
+		self._sendCommand( 'ET_RCL', callback = callback )
 
 	def validateCalibrationAccuracy( self, callback = None ):
 		"""Performs a validation of the calibration accuracy. This command is
@@ -245,7 +263,7 @@ class iViewXClient( DatagramProtocol ):
 		:type callback: function.
 
 		"""
-		self.__sendCommand( 'ET_VLS', callback = callback )
+		self._sendCommand( 'ET_VLS', callback = callback )
 
 	def validateCalibrationAccuracyExtended( self, x, y, callback = None ):
 		"""Performs an extended calibration validation of a single point. This
@@ -264,7 +282,7 @@ class iViewXClient( DatagramProtocol ):
 		"""
 		if not ( isinstance( x, int ) and isinstance( y, int ) and x > 0 and y > 0 ):
 			raise PyViewXception( 'ET_VLX', 'Invalid point' )
-		self.__sendCommand( 'ET_VLX', x, y, callback = callback )
+		self._sendCommand( 'ET_VLX', x, y, callback = callback )
 
 	def requestCalibrationResults( self, callback = None ):
 		"""Requests iViewX for calibration results and returns the gaze data
@@ -274,7 +292,7 @@ class iViewXClient( DatagramProtocol ):
 		:type callback: function.
 
 		"""
-		self.__sendCommand( 'ET_RES', callback = callback )
+		self._sendCommand( 'ET_RES', callback = callback )
 
 	#===========================================================================
 	# Data output
@@ -314,7 +332,7 @@ class iViewXClient( DatagramProtocol ):
 		"""
 		if not isinstance( frm, str ):
 			raise PyViewXception( 'ET_FRM', 'Not a string' )
-		self.__sendCommand( 'ET_FRM', '"%s"' % frm )
+		self._sendCommand( 'ET_FRM', '"%s"' % frm )
 
 	def startDataStreaming( self, framerate = 0 ):
 		"""Starts continuous data output (streaming) using the output format
@@ -326,15 +344,15 @@ class iViewXClient( DatagramProtocol ):
 
 		"""
 		if isinstance( framerate, int ) and framerate > 0:
-			self.__sendCommand( 'ET_STR', framerate = framerate )
+			self._sendCommand( 'ET_STR', framerate = framerate )
 		else:
-			self.__sendCommand( 'ET_STR' )
+			self._sendCommand( 'ET_STR' )
 
 	def stopDataStreaming( self ):
 		"""Stops continuous data output (streaming).
 
 		"""
-		self.__sendCommand( 'ET_EST' )
+		self._sendCommand( 'ET_EST' )
 
 	#===========================================================================
 	# Other
@@ -347,4 +365,4 @@ class iViewXClient( DatagramProtocol ):
 		:type callback: function.
 
 		"""
-		self.__sendCommand( 'ET_SRT', callback = callback )
+		self._sendCommand( 'ET_SRT', callback = callback )
