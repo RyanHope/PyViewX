@@ -45,13 +45,14 @@ class iViewXClient( DatagramProtocol, Pangler ):
 	"""
 	deferreds = {}
 
-	def __init__( self, remoteHost, remotePort, *args, **kwargs ):
+	def __init__( self, remoteHost = None, remotePort = None, *args, **kwargs ):
 		self.remoteHost = remoteHost
 		self.remotePort = remotePort
 		super( iViewXClient, self ).__init__( *args, **kwargs )
 
 	def startProtocol( self ):
-		self.transport.connect( self.remoteHost, self.remotePort )
+		if self.remoteHost and self.remoteHost:
+			self.transport.connect( self.remoteHost, self.remotePort )
 
 	def connectionRefused( self ):
 		print "No one listening"
