@@ -3,3 +3,4 @@
 *.pyc
 .settings
 _build
+test

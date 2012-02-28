@@ -61,6 +61,7 @@ class iViewXClient( DatagramProtocol, Pangler ):
 
 	def datagramReceived( self, data, ( host, port ) ):
 		data = data.split()
+		self.trigger( e = data[0], event = data[0], data = data[1:] )
 		self.trigger( **{data[0]: data[1:]} )
 		#print data
 		"""cb = self._noop
@@ -80,6 +81,17 @@ class iViewXClient( DatagramProtocol, Pangler ):
 		self.transport.write( '%s\n' % ' '.join( map( str, args ) ) )
 
 
+	#===========================================================================
+	# Custom decorator
+	#===========================================================================
+
+	def event( self, event ):
+		def decorator( target ):
+			@self.subscribe( e = event, needs = ['event', 'data'] )
+			def wrapper( *args, **kwargs ):
+				return target( *args, **kwargs )
+			return wrapper
+		return decorator
 
 	#===========================================================================
 	# Response parsers
@@ -154,7 +166,7 @@ class iViewXClient( DatagramProtocol, Pangler ):
 			raise PyViewXception( 'ET_CPA', 'Invalid param' )
 		self._sendCommand( 'ET_CPA', param, callback = callback )
 
-	def setCalibrationParam( self, param, value, callback = None ):
+	def setCalibrationParam( self, param, value ):
 		"""Sets calibration parameters.
 
 		===== ====================== ======= =======
@@ -178,7 +190,7 @@ class iViewXClient( DatagramProtocol, Pangler ):
 			raise PyViewXception( 'ET_CPA', 'Invalid param' )
 		if not isinstance( value, int ):
 			raise PyViewXception( 'ET_CPA', 'Value not boolean' )
-		self._sendCommand( 'ET_CPA', param, value, callback = callback )
+		self._sendCommand( 'ET_CPA', param, value )
 
 	def setSizeCalibrationArea( self, width, height, callback = None ):
 		"""Sets the size of the calibration area.
@@ -206,7 +218,7 @@ class iViewXClient( DatagramProtocol, Pangler ):
 		"""
 		self._sendCommand( 'ET_DEF', callback = callback )
 
-	def setCalibrationCheckLevel( self, value, callback = None ):
+	def setCalibrationCheckLevel( self, value ):
 		"""Sets check level for calibration. Returns the new check level is successful.
 
 		:param value: Calibration check level; valid values are 0=none, 1=weak, 2=medium or 3=strong.
@@ -217,7 +229,7 @@ class iViewXClient( DatagramProtocol, Pangler ):
 		"""
 		if ( value < 0 or value > 3 ):
 			raise PyViewXception( 'ET_LEV', 'Invalid value' )
-		self._sendCommand( 'ET_LEV', value, callback = callback )
+		self._sendCommand( 'ET_LEV', value )
 
 	def setCalibrationPoint( self, point, x, y, callback = None ):
 		"""Sets the position of a given calibration point.
@@ -352,11 +364,24 @@ class iViewXClient( DatagramProtocol, Pangler ):
 		"""Stops continuous data output (streaming).
 
 		"""
-		self._sendCommand( 'ET_EST' )
+		self._sendCommand( 'ET_EFX' )
+
+	#===========================================================================
+	# Online Fixation Detection
+	#===========================================================================
+
+	def startFixationProcessing( self, duration = 75, dispersion = 45 ):
+		self._sendCommand( 'ET_FIX', duration, dispersion )
+
+	def stopFixationProcessing( self ):
+		self._sendCommand( 'ET_EFX' )
 
 	#===========================================================================
 	# Other
 	#===========================================================================
+
+	def autoAdjust( self ):
+		self._sendCommand( 'ET_AAD' )
 
 	def getSampleRate( self, callback = None ):
 		"""Returns current sample rate.
