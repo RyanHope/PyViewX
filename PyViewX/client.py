@@ -33,7 +33,7 @@ from exceptions import PyViewXception
 
 from panglery import Pangler
 
-class iViewXClient( DatagramProtocol, Pangler ):
+class iViewXClient( DatagramProtocol ):
 	"""Creates an iViewXClient object which handles all communication with
 	the iViewX server
 
@@ -45,10 +45,10 @@ class iViewXClient( DatagramProtocol, Pangler ):
 	"""
 	deferreds = {}
 
-	def __init__( self, remoteHost = None, remotePort = None, *args, **kwargs ):
+	def __init__( self, pangler, remoteHost, remotePort ):
+		self.pangler = pangler
 		self.remoteHost = remoteHost
 		self.remotePort = remotePort
-		super( iViewXClient, self ).__init__( *args, **kwargs )
 
 	def startProtocol( self ):
 		if self.remoteHost and self.remoteHost:
@@ -62,15 +62,7 @@ class iViewXClient( DatagramProtocol, Pangler ):
 
 	def datagramReceived( self, data, ( host, port ) ):
 		data = data.split()
-		self.trigger( e = data[0], event = data[0], data = data[1:] )
-		self.trigger( **{data[0]: data[1:]} )
-		#print data
-		"""cb = self._noop
-		if self.deferreds.has_key( data[0] ):
-			cb = self.deferreds[data[0]].pop().callback
-		if hasattr( self, '_%s' % data[0] ):
-			data = getattr( self, '_%s' % data[0] )( data[1:] )
-		cb( data )"""
+		self.trigger( event = data[0], data = data[1:] )
 
 	def _sendCommand( self, *args, **kwargs ):
 		"""if kwargs.has_key( 'callback' ) and kwargs['callback']:
@@ -91,6 +83,14 @@ class iViewXClient( DatagramProtocol, Pangler ):
 			@self.subscribe( e = event, needs = ['event', 'data'] )
 			def wrapper( *args, **kwargs ):
 				return target( *args, **kwargs )
+			return wrapper
+		return decorator
+
+	def event2( self, event ):
+		def decorator( target ):
+			@self.subscribe( e = event, needs = ['event', 'data'] )
+			def wrapper( self, *args, **kwargs ):
+				return target( self, *args, **kwargs )
 			return wrapper
 		return decorator
 
