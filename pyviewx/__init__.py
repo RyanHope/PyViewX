@@ -25,4 +25,4 @@
 from exceptions import iViewXception
 from client import iViewXClient
 
-__version__ = '1'
+__version__ = '0.1.0'
