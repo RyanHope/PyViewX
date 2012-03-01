@@ -78,15 +78,13 @@ class iViewXClient( DatagramProtocol ):
 	# Calibration
 	#===========================================================================
 
-	def startCalibration( self, points, eye = 0, callback = None ):
+	def startCalibration( self, points, eye = 0 ):
 		"""Starts a calibration. Returns calibration information is successful.
 
 		:param points: The number of calibration points; valid options are 2, 5, 9 or 13.
 		:type points: int.
 		:param eye: The eye to use for binocular systems; valid options are 1-right or 2-left.
 		:type eye: int.
-		:param callback: A function to call with response.
-		:type callback: function.
 
 		"""
 		if not ( points == 2 or points == 5 or points == 9 or points == 13 ):
@@ -94,9 +92,9 @@ class iViewXClient( DatagramProtocol ):
 		if ( not isinstance( eye, int ) or eye < 0 or eye > 2 ):
 			raise iViewXception( 'ET_CAL', 'Invalid eye' )
 		if ( eye == 1 or eye == 2 ):
-			self._sendCommand( 'ET_CAL', points, eye, callback = callback )
+			self._sendCommand( 'ET_CAL', points, eye )
 		else:
-			self._sendCommand( 'ET_CAL', points, callback = callback )
+			self._sendCommand( 'ET_CAL', points )
 
 	def acceptCalibrationPoint( self ):
 		"""Accepts the current calibration point during the calibration process,
@@ -106,22 +104,16 @@ class iViewXClient( DatagramProtocol ):
 		*The command is sent by iViewX every time a calibration point is accepted
 		during calibration, either manually by the user or automatically.*
 
-		:param callback: A function to call with response.
-		:type callback: function.
-
 		"""
 		self._sendCommand( 'ET_ACC' )
 
-	def cancelCalibration( self, callback = None ):
+	def cancelCalibration( self ):
 		"""Cancels the calibration procedure.
 
-		:param callback: A function to call with response.
-		:type callback: function.
-
 		"""
-		self._sendCommand( 'ET_BRK', callback = callback )
+		self._sendCommand( 'ET_BRK' )
 
-	def getCalibrationParam( self, param, callback = None ):
+	def getCalibrationParam( self, param ):
 		"""Gets calibration parameters.
 
 		.. note::
@@ -129,13 +121,11 @@ class iViewXClient( DatagramProtocol ):
 
 		:param param: Numeric ID of calibration parameter.
 		:type param: int.
-		:param callback: A function to call with response.
-		:type callback: function.
 
 		"""
 		if ( param < 0 or param > 3 ):
 			raise iViewXception( 'ET_CPA', 'Invalid param' )
-		self._sendCommand( 'ET_CPA', param, callback = callback )
+		self._sendCommand( 'ET_CPA', param )
 
 	def setCalibrationParam( self, param, value ):
 		"""Sets calibration parameters.
@@ -153,8 +143,6 @@ class iViewXClient( DatagramProtocol ):
 		:type param: int.
 		:param value: New state of calibration parameter.
 		:type value: int.
-		:param callback: A function to call with response.
-		:type callback: function.
 
 		"""
 		if ( param < 0 or param > 3 ):
@@ -163,7 +151,7 @@ class iViewXClient( DatagramProtocol ):
 			raise iViewXception( 'ET_CPA', 'Value not boolean' )
 		self._sendCommand( 'ET_CPA', param, value )
 
-	def setSizeCalibrationArea( self, width, height, callback = None ):
+	def setSizeCalibrationArea( self, width, height ):
 		"""Sets the size of the calibration area.
 
 		*The command is sent by iViewX when the size of the calibration area is changed.*
@@ -172,37 +160,30 @@ class iViewXClient( DatagramProtocol ):
 		:type width: int.
 		:param height: Height of calibration area in pixels.
 		:type height: int.
-		:param callback: A function to call with response.
-		:type callback: function.
 
 		"""
 		if not ( isinstance( width, int ) and isinstance( height, int ) and width > 0 and height > 0 ):
 			raise iViewXception( 'ET_CSZ', 'Invalid dimension' )
-		self._sendCommand( 'ET_CSZ', width, height, callback = callback )
+		self._sendCommand( 'ET_CSZ', width, height )
 
-	def resetCalibrationPoints( self, callback = None ):
+	def resetCalibrationPoints( self ):
 		"""Sets all calibration points to default positions.
 
-		:param callback: A function to call with response.
-		:type callback: function.
-
 		"""
-		self._sendCommand( 'ET_DEF', callback = callback )
+		self._sendCommand( 'ET_DEF' )
 
 	def setCalibrationCheckLevel( self, value ):
 		"""Sets check level for calibration. Returns the new check level is successful.
 
 		:param value: Calibration check level; valid values are 0=none, 1=weak, 2=medium or 3=strong.
 		:type value: int.
-		:param callback: A function to call with response.
-		:type callback: function.
 
 		"""
 		if ( value < 0 or value > 3 ):
 			raise iViewXception( 'ET_LEV', 'Invalid value' )
 		self._sendCommand( 'ET_LEV', value )
 
-	def setCalibrationPoint( self, point, x, y, callback = None ):
+	def setCalibrationPoint( self, point, x, y ):
 		"""Sets the position of a given calibration point.
 
 		.. note::
@@ -214,15 +195,13 @@ class iViewXClient( DatagramProtocol ):
 		:type x: int.
 		:param y: Vertical position of calibration point in pixels.
 		:type y: int.
-		:param callback: A function to call with response.
-		:type callback: function.
 
 		"""
 		if not ( isinstance( point, int ) and point > 0 and point < 14 and isinstance( x, int ) and isinstance( y, int ) and x > 0 and y > 0 ):
 			raise iViewXception( 'ET_PNT', 'Invalid point' )
-		self._sendCommand( 'ET_PNT', point, x, y, callback = callback )
+		self._sendCommand( 'ET_PNT', point, x, y )
 
-	def startDriftCorrection( self, callback = None ):
+	def startDriftCorrection( self ):
 		"""Starts drift correction. Drift correction is available after a
 		calibration of the system. Drift correction uses the first calibration
 		point, which is usually the center point, as calibration point.
@@ -230,25 +209,21 @@ class iViewXClient( DatagramProtocol ):
 		.. note::
 			Only for hi-speed systems.
 
-		:param callback: A function to call with response.
-		:type callback: function.
 		"""
-		self._sendCommand( 'ET_RCL', callback = callback )
+		self._sendCommand( 'ET_RCL' )
 
-	def validateCalibrationAccuracy( self, callback = None ):
+	def validateCalibrationAccuracy( self ):
 		"""Performs a validation of the calibration accuracy. This command is
 		available only if a successful calibration has been performed previously.
 		The result shows the accuracy of the calibration and therefore indicates
 		its quality. With the return values you can estimage before starting the
 		experiment, how good the measurement will be.
 
-		:param callback: A function to call with response.
-		:type callback: function.
 
 		"""
-		self._sendCommand( 'ET_VLS', callback = callback )
+		self._sendCommand( 'ET_VLS' )
 
-	def validateCalibrationAccuracyExtended( self, x, y, callback = None ):
+	def validateCalibrationAccuracyExtended( self, x, y ):
 		"""Performs an extended calibration validation of a single point. This
 		command is available only if a successful calibration has been performed
 		previously. THe result shows the accuracy of the calibration and therefore
@@ -259,20 +234,15 @@ class iViewXClient( DatagramProtocol ):
 		:type x: int.
 		:param y: Vertical position of calibration test point in pixels.
 		:type y: int.
-		:param callback: A function to call with response.
-		:type callback: function.
 
 		"""
 		if not ( isinstance( x, int ) and isinstance( y, int ) and x > 0 and y > 0 ):
 			raise iViewXception( 'ET_VLX', 'Invalid point' )
-		self._sendCommand( 'ET_VLX', x, y, callback = callback )
+		self._sendCommand( 'ET_VLX', x, y )
 
 	def requestCalibrationResults( self ):
 		"""Requests iViewX for calibration results and returns the gaze data
 		aquired for a specific calibration point.
-
-		:param callback: A function to call with response.
-		:type callback: function.
 
 		"""
 		self._sendCommand( 'ET_RES' )
@@ -281,7 +251,7 @@ class iViewXClient( DatagramProtocol ):
 	# Data output
 	#===========================================================================
 
-	def setDataFormat( self, frm, callback = None ):
+	def setDataFormat( self, frm ):
 		"""Sets data format for data output. The syntax is similar to the 'C'
 		string formatting syntax. Each format specifier is marked by a preceding
 		percentage (%) symbol.
@@ -364,11 +334,8 @@ class iViewXClient( DatagramProtocol ):
 	def autoAdjust( self ):
 		self._sendCommand( 'ET_AAD' )
 
-	def getSampleRate( self, callback = None ):
+	def getSampleRate( self ):
 		"""Returns current sample rate.
 
-		:param callback: A function to call with response.
-		:type callback: function.
-
 		"""
-		self._sendCommand( 'ET_SRT', callback = callback )
+		self._sendCommand( 'ET_SRT' )

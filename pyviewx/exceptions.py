@@ -1,3 +1,4 @@
+# -*- coding:	utf-8 -*-
 #===============================================================================
 # This file is part of PyViewX.
 # Copyright (C) 2012 Ryan Hope <rmh3093@gmail.com>
