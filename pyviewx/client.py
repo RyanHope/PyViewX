@@ -33,7 +33,7 @@ from exceptions import iViewXception
 
 from panglery import Pangler
 
-class iViewXClient( DatagramProtocol ):
+class iViewXClient( Pangler, DatagramProtocol ):
 	"""Creates an iViewXClient object which handles all communication with
 	the iViewX server
 
@@ -45,8 +45,7 @@ class iViewXClient( DatagramProtocol ):
 	"""
 	deferreds = {}
 
-	def __init__( self, pangler, remoteHost, remotePort ):
-		self.pangler = pangler
+	def setRemoteInfo( self, remoteHost, remotePort ):
 		self.remoteHost = remoteHost
 		self.remotePort = remotePort
 
@@ -59,20 +58,10 @@ class iViewXClient( DatagramProtocol ):
 
 	def datagramReceived( self, data, ( host, port ) ):
 		data = data.split()
-		self.pangler.trigger( event = data[0], data = data[1:] )
+		self.trigger( event = data[0], data = data[1:] )
 
 	def _sendCommand( self, *args, **kwargs ):
 		self.transport.write( '%s\n' % ' '.join( map( str, args ) ) )
-
-	#===========================================================================
-	# Response parsers
-	#===========================================================================
-
-	def _ET_SRT( self, data ):
-		return int( data[0] )
-
-	def _ET_STR( self, data ):
-		return int( data[0] )
 
 	#===========================================================================
 	# Calibration
