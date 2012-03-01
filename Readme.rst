@@ -2,7 +2,7 @@
 PyViewX
 =======
 
-``pyviewx`` is library for communicating with SensoMotoric Instruments (SMI) eye
+``pyviewx`` is a Python package for communicating with SensoMotoric Instruments (SMI) eye
 trackers via iViewX.
 
 Here's a basic example of usage::
