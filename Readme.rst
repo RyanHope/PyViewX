@@ -7,21 +7,21 @@ trackers via iViewX.
 
 Here's a basic example of usage::
 
-	from pyviewx import iViewXClient
+	from pyviewx import iViewXClient, Dispatcher
 	from twisted.internet import reactor
 
-	client = iViewXClient()
-	client.setRemoteInfo('127.0.0.1', 4444)
+	d = Dispatcher()
+	client = iViewXClient(d, '127.0.0.1', 4444)
 
-	@client.event( 'ET_FIX' )
+	@d.listen( 'ET_FIX' )
 	def PyViewXEvent( inSender, inEvent, inResponse ):
 		print 'Fixation Start', inSender, inEvent, inResponse
 
-	@client.event( 'ET_EFX' )
+	@d.listen( 'ET_EFX' )
 	def PyViewXEvent( inSender, inEvent, inResponse ):
 		print 'Fixation End', inSender, inEvent, inResponse
 
-	@client.event( 'ET_SPL' )
+	@d.listen( 'ET_SPL' )
 	def PyViewXEvent( inSender, inEvent, inResponse ):
 		print 'Sample', inSender, inEvent, inResponse
 

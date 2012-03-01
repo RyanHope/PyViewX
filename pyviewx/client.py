@@ -25,15 +25,9 @@
 """
 
 from twisted.internet.protocol import DatagramProtocol
-from twisted.internet import defer
-
-from collections import deque
-
 from exceptions import iViewXception
 
-from panglery import Pangler
-
-class iViewXClient( Pangler, DatagramProtocol ):
+class iViewXClient( DatagramProtocol ):
 	"""Creates an iViewXClient object which handles all communication with
 	the iViewX server
 
@@ -43,14 +37,15 @@ class iViewXClient( Pangler, DatagramProtocol ):
 	:type remotePort: int.
 
 	"""
-	deferreds = {}
 
-	def setRemoteInfo( self, remoteHost, remotePort ):
+	def __init__( self, dispatcher, remoteHost, remotePort ):
+		self.dispatcher = dispatcher
 		self.remoteHost = remoteHost
 		self.remotePort = remotePort
 
 	def startProtocol( self ):
-		if self.remoteHost and self.remoteHost:
+		print 'start', self.remoteHost, self.remotePort
+		if self.remoteHost and self.remotePort:
 			self.transport.connect( self.remoteHost, self.remotePort )
 
 	def connectionRefused( self ):
@@ -58,23 +53,10 @@ class iViewXClient( Pangler, DatagramProtocol ):
 
 	def datagramReceived( self, data, ( host, port ) ):
 		data = data.split()
-		self.trigger( e = data[0], inEvent = data[0], inResponse = data[1:] )
+		self.dispatcher.trigger( e = data[0], inEvent = data[0], inResponse = data[1:] )
 
 	def _sendCommand( self, *args, **kwargs ):
 		self.transport.write( '%s\n' % ' '.join( map( str, args ) ) )
-
-	#===========================================================================
-	# Custom decorator
-	#===========================================================================
-
-	def event( self, event ):
-		def decorator( target ):
-			@self.subscribe( e = event, needs = ['inEvent', 'inResponse'] )
-			def wrapper( *args, **kwargs ):
-				return target( *args, **kwargs )
-			return wrapper
-		return decorator
-
 
 	#===========================================================================
 	# Calibration

@@ -17,13 +17,14 @@
 # along with PyViewX.  If not, see <http://www.gnu.org/licenses/>.
 #===============================================================================
 
-"""A Python package for communicating with the SMI iViewX server via UDP.
+from panglery import Pangler
 
-.. moduleauthor:: Ryan Hope <rmh3093@gmail.com>
-"""
+class Dispatcher( Pangler ):
 
-from exceptions import iViewXception
-from client import iViewXClient
-from dispatcher import Dispatcher
-
-__version__ = '0.1.0'
+	def listen( self, event ):
+		def decorator( target ):
+			@self.subscribe( e = event, needs = ['inEvent', 'inResponse'] )
+			def wrapper( *args, **kwargs ):
+				return target( *args, **kwargs )
+			return wrapper
+		return decorator
