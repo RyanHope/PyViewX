@@ -29,7 +29,7 @@ from twisted.internet import defer
 
 from collections import deque
 
-from exceptions import PyViewXception
+from exceptions import iViewXception
 
 from panglery import Pangler
 
@@ -90,9 +90,9 @@ class iViewXClient( DatagramProtocol ):
 
 		"""
 		if not ( points == 2 or points == 5 or points == 9 or points == 13 ):
-			raise PyViewXception( 'ET_CAL', 'Invalid points' )
+			raise iViewXception( 'ET_CAL', 'Invalid points' )
 		if ( not isinstance( eye, int ) or eye < 0 or eye > 2 ):
-			raise PyViewXception( 'ET_CAL', 'Invalid eye' )
+			raise iViewXception( 'ET_CAL', 'Invalid eye' )
 		if ( eye == 1 or eye == 2 ):
 			self._sendCommand( 'ET_CAL', points, eye, callback = callback )
 		else:
@@ -134,7 +134,7 @@ class iViewXClient( DatagramProtocol ):
 
 		"""
 		if ( param < 0 or param > 3 ):
-			raise PyViewXception( 'ET_CPA', 'Invalid param' )
+			raise iViewXception( 'ET_CPA', 'Invalid param' )
 		self._sendCommand( 'ET_CPA', param, callback = callback )
 
 	def setCalibrationParam( self, param, value ):
@@ -158,9 +158,9 @@ class iViewXClient( DatagramProtocol ):
 
 		"""
 		if ( param < 0 or param > 3 ):
-			raise PyViewXception( 'ET_CPA', 'Invalid param' )
+			raise iViewXception( 'ET_CPA', 'Invalid param' )
 		if not isinstance( value, int ):
-			raise PyViewXception( 'ET_CPA', 'Value not boolean' )
+			raise iViewXception( 'ET_CPA', 'Value not boolean' )
 		self._sendCommand( 'ET_CPA', param, value )
 
 	def setSizeCalibrationArea( self, width, height, callback = None ):
@@ -177,7 +177,7 @@ class iViewXClient( DatagramProtocol ):
 
 		"""
 		if not ( isinstance( width, int ) and isinstance( height, int ) and width > 0 and height > 0 ):
-			raise PyViewXception( 'ET_CSZ', 'Invalid dimension' )
+			raise iViewXception( 'ET_CSZ', 'Invalid dimension' )
 		self._sendCommand( 'ET_CSZ', width, height, callback = callback )
 
 	def resetCalibrationPoints( self, callback = None ):
@@ -199,7 +199,7 @@ class iViewXClient( DatagramProtocol ):
 
 		"""
 		if ( value < 0 or value > 3 ):
-			raise PyViewXception( 'ET_LEV', 'Invalid value' )
+			raise iViewXception( 'ET_LEV', 'Invalid value' )
 		self._sendCommand( 'ET_LEV', value )
 
 	def setCalibrationPoint( self, point, x, y, callback = None ):
@@ -219,7 +219,7 @@ class iViewXClient( DatagramProtocol ):
 
 		"""
 		if not ( isinstance( point, int ) and point > 0 and point < 14 and isinstance( x, int ) and isinstance( y, int ) and x > 0 and y > 0 ):
-			raise PyViewXception( 'ET_PNT', 'Invalid point' )
+			raise iViewXception( 'ET_PNT', 'Invalid point' )
 		self._sendCommand( 'ET_PNT', point, x, y, callback = callback )
 
 	def startDriftCorrection( self, callback = None ):
@@ -264,7 +264,7 @@ class iViewXClient( DatagramProtocol ):
 
 		"""
 		if not ( isinstance( x, int ) and isinstance( y, int ) and x > 0 and y > 0 ):
-			raise PyViewXception( 'ET_VLX', 'Invalid point' )
+			raise iViewXception( 'ET_VLX', 'Invalid point' )
 		self._sendCommand( 'ET_VLX', x, y, callback = callback )
 
 	def requestCalibrationResults( self ):
@@ -314,7 +314,7 @@ class iViewXClient( DatagramProtocol ):
 
 		"""
 		if not isinstance( frm, str ):
-			raise PyViewXception( 'ET_FRM', 'Not a string' )
+			raise iViewXception( 'ET_FRM', 'Not a string' )
 		self._sendCommand( 'ET_FRM', '"%s"' % frm )
 
 	def startDataStreaming( self, framerate = 0 ):

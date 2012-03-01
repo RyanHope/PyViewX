@@ -2,12 +2,12 @@
 PyViewX
 =======
 
-|PyViewX| is library for communicating with eye trackers via the iViewX server 
+|pyviewx| is library for communicating with eye trackers via the iViewX server 
 software from SensoMotoric Instruments.
 
 Here's a basic example of usage::
 
-	from PyViewX.client import iViewXClient
+	from pyviewx.client import iViewXClient
 	from panglery import Pangler
 	from twisted.internet import reactor
 

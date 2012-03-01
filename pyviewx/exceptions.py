@@ -16,10 +16,9 @@
 # along with PyViewX.  If not, see <http://www.gnu.org/licenses/>.
 #===============================================================================
 
-"""A Python package for communicating with the SMI iViewX server via UDP.
-
-.. moduleauthor:: Ryan Hope <rmh3093@gmail.com>
-"""
-
-import exceptions
-import client
+class iViewXception( Exception ):
+	def __init__( self, cmd, error ):
+		self.cmd = cmd
+		self.error = error
+	def __str__( self ):
+		return repr( self.cmd, self.error )
