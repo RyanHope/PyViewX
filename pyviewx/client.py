@@ -58,10 +58,23 @@ class iViewXClient( Pangler, DatagramProtocol ):
 
 	def datagramReceived( self, data, ( host, port ) ):
 		data = data.split()
-		self.trigger( event = data[0], data = data[1:] )
+		self.trigger( e = data[0], inEvent = data[0], inResponse = data[1:] )
 
 	def _sendCommand( self, *args, **kwargs ):
 		self.transport.write( '%s\n' % ' '.join( map( str, args ) ) )
+
+	#===========================================================================
+	# Custom decorator
+	#===========================================================================
+
+	def event( self, event ):
+		def decorator( target ):
+			@self.subscribe( e = event, needs = ['inEvent', 'inResponse'] )
+			def wrapper( *args, **kwargs ):
+				return target( *args, **kwargs )
+			return wrapper
+		return decorator
+
 
 	#===========================================================================
 	# Calibration

@@ -13,17 +13,17 @@ Here's a basic example of usage::
 	client = iViewXClient()
 	client.setRemoteInfo('127.0.0.1', 4444)
 
-	@client.subscribe( event = 'ET_FIX', needs = ['data'] )
-	def PyViewXEvent( p, data ):
-		print 'Fixation Start', data
+	@client.event( 'ET_FIX' )
+	def PyViewXEvent( inSender, inEvent, inResponse ):
+		print 'Fixation Start', inSender, inEvent, inResponse
 
-	@client.subscribe( event = 'ET_EFX', needs = ['data'] )
-	def PyViewXEvent( p, data ):
-		print 'Fixation End', data
+	@client.event( 'ET_EFX' )
+	def PyViewXEvent( inSender, inEvent, inResponse ):
+		print 'Fixation End', inSender, inEvent, inResponse
 
-	@client.subscribe( event = 'ET_SPL', needs = ['data'] )
-	def PyViewXEvent( p, data ):
-		print 'Sample', data
+	@client.event( 'ET_SPL' )
+	def PyViewXEvent( inSender, inEvent, inResponse ):
+		print 'Sample', inSender, inEvent, inResponse
 
 	reactor.listenUDP( 5555, client )
 	reactor.callLater( 0, client.setDataFormat, '%TS %ET %SX %SY %DX %DY %EX %EY %EZ' )
