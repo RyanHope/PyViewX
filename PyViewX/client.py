@@ -59,7 +59,6 @@ class iViewXClient( DatagramProtocol ):
 
 	def datagramReceived( self, data, ( host, port ) ):
 		data = data.split()
-		print data
 		self.pangler.trigger( event = data[0], data = data[1:] )
 
 	def _sendCommand( self, *args, **kwargs ):
