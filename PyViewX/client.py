@@ -57,42 +57,13 @@ class iViewXClient( DatagramProtocol ):
 	def connectionRefused( self ):
 		print "No one listening"
 
-	def _noop( self, data ):
-		print ['UNHANDLED', data]
-
 	def datagramReceived( self, data, ( host, port ) ):
 		data = data.split()
-		self.trigger( event = data[0], data = data[1:] )
+		print data
+		self.pangler.trigger( event = data[0], data = data[1:] )
 
 	def _sendCommand( self, *args, **kwargs ):
-		"""if kwargs.has_key( 'callback' ) and kwargs['callback']:
-			if not self.deferreds.has_key( args[0] ):
-				self.deferreds[args[0]] = deque()
-			d = defer.Deferred()
-			d.addCallback( kwargs['callback'] )
-			self.deferreds[args[0]].appendleft( d )"""
 		self.transport.write( '%s\n' % ' '.join( map( str, args ) ) )
-
-
-	#===========================================================================
-	# Custom decorator
-	#===========================================================================
-
-	def event( self, event ):
-		def decorator( target ):
-			@self.subscribe( e = event, needs = ['event', 'data'] )
-			def wrapper( *args, **kwargs ):
-				return target( *args, **kwargs )
-			return wrapper
-		return decorator
-
-	def event2( self, event ):
-		def decorator( target ):
-			@self.subscribe( e = event, needs = ['event', 'data'] )
-			def wrapper( self, *args, **kwargs ):
-				return target( self, *args, **kwargs )
-			return wrapper
-		return decorator
 
 	#===========================================================================
 	# Response parsers
@@ -366,6 +337,16 @@ class iViewXClient( DatagramProtocol ):
 
 		"""
 		self._sendCommand( 'ET_EFX' )
+
+	#===========================================================================
+	# Eye video image commands
+	#===========================================================================
+
+	def startEyeVideoStreaming( self ):
+		self._sendCommand( 'ET_SIM' )
+
+	def stopEyeVideoStreaming( self ):
+		self._sendCommand( 'ET_SIM' )
 
 	#===========================================================================
 	# Online Fixation Detection
