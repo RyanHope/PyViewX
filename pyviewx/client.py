@@ -44,7 +44,6 @@ class iViewXClient( DatagramProtocol ):
 		self.remotePort = remotePort
 
 	def startProtocol( self ):
-		print 'start', self.remoteHost, self.remotePort
 		if self.remoteHost and self.remotePort:
 			self.transport.connect( self.remoteHost, self.remotePort )
 
