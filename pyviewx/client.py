@@ -38,10 +38,16 @@ class iViewXClient( DatagramProtocol ):
 
 	"""
 
-	def __init__( self, dispatcher, remoteHost, remotePort ):
-		self.dispatcher = dispatcher
+	def __init__( self, remoteHost, remotePort ):
 		self.remoteHost = remoteHost
 		self.remotePort = remotePort
+		self.dispatchers = []
+
+	def addDispatcher( self, dispatcher ):
+		self.dispatchers.append( dispatcher )
+
+	def addRemove( self, dispatcher ):
+		self.dispatchers.remove( dispatcher )
 
 	def startProtocol( self ):
 		if self.remoteHost and self.remotePort:
@@ -52,7 +58,8 @@ class iViewXClient( DatagramProtocol ):
 
 	def datagramReceived( self, data, ( host, port ) ):
 		data = data.split()
-		self.dispatcher.trigger( e = data[0], inEvent = data[0], inResponse = data[1:] )
+		for d in self.dispatchers:
+			d.trigger( e = data[0], inEvent = data[0], inResponse = data[1:] )
 
 	def _sendCommand( self, *args, **kwargs ):
 		self.transport.write( '%s\n' % ' '.join( map( str, args ) ) )
