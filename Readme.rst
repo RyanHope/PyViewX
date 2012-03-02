@@ -11,7 +11,8 @@ Here's a basic example of usage::
 	from twisted.internet import reactor
 
 	d = Dispatcher()
-	client = iViewXClient(d, '127.0.0.1', 4444)
+	client = iViewXClient('192.168.1.100', 4444)
+	client.addDispatcher(d)
 
 	@d.listen( 'ET_FIX' )
 	def PyViewXEvent( inSender, inEvent, inResponse ):
@@ -29,4 +30,16 @@ Here's a basic example of usage::
 	reactor.callLater( 0, client.setDataFormat, '%TS %ET %SX %SY %DX %DY %EX %EY %EZ' )
 	reactor.callLater( 0, client.startDataStreaming )
 	reactor.callLater( 0, client.startFixationProcessing )
+	reactor.run()
+
+Here's a basic example of how to use the ``Calibrator`` in the ``pyviewx.pygamesupport`` package::
+
+	from pyviewx import iViewXClient
+	from pyviewx.pygamesupport import Calibrator
+	from twisted.internet import reactor
+
+	client = iViewXClient( '192.168.1.100', 4444 )
+	calibrator = Calibrator( client, reactor = reactor )
+	reactor.listenUDP( 5555, client )
+	reactor.callLater( 0, calibrator.start )
 	reactor.run()
