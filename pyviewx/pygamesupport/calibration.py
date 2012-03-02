@@ -25,7 +25,10 @@ class Calibrator( object ):
 
 	d = Dispatcher()
 
-	def __init__( self, client, screen = None, escape = False ):
+	def __init__( self, client, screen = None, escape = False, reactor = None ):
+		if reactor is None:
+			from twisted.internet import reactor
+		self.reactor = reactor
 		self.escape = escape
 		self.client = client
 		self.client.addDispatcher( self.d )
@@ -46,6 +49,7 @@ class Calibrator( object ):
 
 		pygame.mouse.set_visible( False )
 
+		self.complete = False
 		self.lc = None
 		self._reset()
 
@@ -83,7 +87,7 @@ class Calibrator( object ):
 			if not self.currentPoint < 0:
 				pygame.draw.circle( self.worldsurf, ( 255, 255, 0 ), self.calibrationPoints[self.currentPoint], 8 )
 				pygame.draw.circle( self.worldsurf, ( 0, 0, 0 ), self.calibrationPoints[self.currentPoint], 2 )
-		if self.state == 1:
+		if self.state > 0:
 			f = pygame.font.Font( None, 28 )
 			if not self.calibrationResults:
 				self._draw_text( 'Calculating calibration accuracy %s' % self.spinner[self.spinnerIndex], f, ( 255, 255, 255 ), ( self.center_x, self.center_y ) )
@@ -106,17 +110,15 @@ class Calibrator( object ):
 				if self.state == 0:
 					if event.key == pygame.K_SPACE:
 						self.client.acceptCalibrationPoint()
-				elif self.state == 1:
+				elif self.state == 2:
 					if event.key == pygame.K_r:
 						self._reset()
 						self.client.startCalibration( 9 )
+					elif event.key == pygame.K_SPACE:
+						self.complete = True
+						self.lc.stop()
 
 	def start( self, stopCallback = None ):
-		self.lc = LoopingCall( self._update )
-		dd = self.lc.start( 1.0 / 30 )
-		if not stopCallback:
-			stopCallback = self.stop
-		dd.addCallback( stopCallback )
 		self.client.setDataFormat( '%TS %ET %SX %SY %DX %DY %EX %EY %EZ' )
 		self.client.startDataStreaming()
 		self.client.setSizeCalibrationArea( self.width, self.height )
@@ -125,10 +127,15 @@ class Calibrator( object ):
 		self.client.setCalibrationParam( 3, 1 )
 		self.client.setCalibrationCheckLevel( 3 )
 		self.client.startCalibration( 9 )
+		self.lc = LoopingCall( self._update )
+		dd = self.lc.start( 1.0 / 30 )
+		if not stopCallback:
+			stopCallback = self.stop
+		dd.addCallback( stopCallback )
 
 	def stop( self, lc ):
+		self.reactor.stop()
 		pygame.quit()
-		reactor.stop()
 
 	@d.listen( 'ET_SPL' )
 	def iViewXEvent( self, inSender, inEvent, inResponse ):
@@ -152,6 +159,7 @@ class Calibrator( object ):
 
 	@d.listen( 'ET_VLS' )
 	def iViewXEvent( self, inSender, inEvent, inResponse ):
+		self.state = 2
 		self.calibrationResults.append( inResponse )
 
 	@d.listen( 'ET_CSP' )
@@ -163,14 +171,3 @@ class Calibrator( object ):
 		self.state = 1
 		self.client.requestCalibrationResults()
 		self.client.validateCalibrationAccuracy()
-
-if __name__ == '__main__':
-
-	from twisted.internet import reactor
-	from pyviewx import iViewXClient
-
-	client = iViewXClient( '192.168.1.100', 4444 )
-	calibrator = Calibrator( client , escape = True )
-	reactor.listenUDP( 5555, client )
-	reactor.callLater( 0, calibrator.start )
-	reactor.run()
