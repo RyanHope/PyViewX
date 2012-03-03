@@ -12,6 +12,9 @@ egg:
 html:
 	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) $(BUILDDIR)/html
 
+upload:
+	python setup.py sdist bdist_egg upload
+
 clean:
 	-rm -rf $(BUILDDIR)
 	-rm -rf dist
