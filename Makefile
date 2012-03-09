@@ -4,19 +4,20 @@ BUILDDIR      = build
 
 ALLSPHINXOPTS   = -d $(BUILDDIR)/doctrees -D latex_paper_size=letter $(SPHINXOPTS) .
 
-.PHONY: clean html
+.PHONY: clean html dist
 
-egg:
-	python setup.py bdist_egg
+dist:
+	python setup.py sdist bdist_egg
+
+upload: dist
+	python setup.py sdist bdist_egg upload
 
 html:
 	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) $(BUILDDIR)/html
-
-upload:
-	python setup.py sdist bdist_egg upload
 
 clean:
 	-rm -rf $(BUILDDIR)
 	-rm -rf dist
 	-rm -rf *.egg-info
+	-rm -rf build
 	-rm -rf `find . -name *.pyc`
