@@ -8,7 +8,7 @@ setup(
     name = 'PyViewX',
     version = version,
 
-    packages = ['pyviewx'],
+    packages = ['pyviewx', 'pyviewx.pygamesupport'],
 
     description = 'A library for communicating with eye trackers via the iViewX server software from SensoMotoric Instruments.',
     long_description = open( descr_file ).read(),
