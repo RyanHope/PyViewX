@@ -2,7 +2,7 @@ from setuptools import setup
 from pyviewx import __version__ as version
 import os.path
 
-descr_file = os.path.join( os.path.dirname( __file__ ), 'Readme.rst' )
+descr_file = os.path.join( os.path.dirname( __file__ ), 'README' )
 
 setup( 
     name = 'PyViewX',
@@ -16,8 +16,10 @@ setup(
     author_email = 'rmh3093@gmail.com',
     url = 'https://github.com/RyanHope/PyViewX',
     classifiers = [
-				'License :: OSI Approved :: GNU General Public License 3 (GPL-3)',
+				'License :: OSI Approved :: GNU General Public License (GPL)',
+				'Framework :: Twisted',
 				'Programming Language :: Python :: 2',
+				'Topic :: Scientific/Engineering',
 				'Topic :: Utilities',
     ],
 	license = 'GPL-3',
