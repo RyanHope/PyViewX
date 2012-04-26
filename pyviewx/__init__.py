@@ -26,4 +26,4 @@ from exceptions import iViewXception
 from client import iViewXClient
 from dispatcher import Dispatcher
 
-__version__ = '0.1.0'
+__version__ = '0.3.1'

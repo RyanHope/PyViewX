@@ -20,14 +20,16 @@
 import pygame
 from pyviewx import Dispatcher
 from twisted.internet.task import LoopingCall
+import numpy
 
 class Calibrator( object ):
 
 	d = Dispatcher()
 
-	def __init__( self, client, screen = None, escape = False, reactor = None ):
+	def __init__( self, client, screen = None, escape = False, reactor = None, eye = 0 ):
 		if reactor is None:
 			from twisted.internet import reactor
+		self.eye = eye
 		self.reactor = reactor
 		self.escape = escape
 		self.client = client
@@ -75,13 +77,28 @@ class Calibrator( object ):
 			r.center = ( self.center_x, self.center_y )
 			pygame.draw.rect( self.worldsurf, ( 0, 0, 0 ), r, 1 )
 			f = pygame.font.Font( None, 18 )
+			if self.eye_position:
+				if self.eye == 0:
+					x = numpy.mean( ( self.eye_position[0], self.eye_position[1] ) )
+					y = numpy.mean( ( self.eye_position[2], self.eye_position[3] ) )
+					z = numpy.mean( ( self.eye_position[4], self.eye_position[5] ) )
+				elif self.eye == 1:
+					x = self.eye_position[1]
+					y = self.eye_position[3]
+					z = self.eye_position[5]
+				elif self.eye == 2:
+					x = self.eye_position[0]
+					y = self.eye_position[2]
+					z = self.eye_position[4]
 			if self.eye_position and self.eye_position[4] > 550 and self.eye_position[5] > 550 and self.eye_position[4] < 850 and self.eye_position[5] < 850:
 				left = map( int, ( self.eye_position[0] / 99.999 * self.center_x + self.center_x, self.eye_position[2] / -99.999 * self.center_y + self.center_y ) )
 				right = map( int, ( self.eye_position[1] / 99.999 * self.center_x + self.center_x, self.eye_position[3] / -99.999 * self.center_y + self.center_y ) )
 				l = int( ( 700 - self.eye_position[4] ) / 7 + 20 )
 				r = int( ( 700 - self.eye_position[5] ) / 7 + 20 )
-				pygame.draw.circle( self.worldsurf, ( 255, 255, 255 ), left, l )
-				pygame.draw.circle( self.worldsurf, ( 255, 255, 255 ), right, r )
+				if l > 0:
+					pygame.draw.circle( self.worldsurf, ( 255, 255, 255 ), left, l )
+				if r > 0:
+					pygame.draw.circle( self.worldsurf, ( 255, 255, 255 ), right, r )
 				self._draw_text( '%d' % int( self.eye_position[4] - 700 ), f, ( 0, 0, 0 ), left )
 				self._draw_text( '%d' % int( self.eye_position[5] - 700 ), f, ( 0, 0, 0 ), right )
 			if not self.currentPoint < 0:
@@ -113,12 +130,12 @@ class Calibrator( object ):
 				elif self.state == 2:
 					if event.key == pygame.K_r:
 						self._reset()
-						self.client.startCalibration( 9 )
+						self.client.startCalibration( 9, self.eye )
 					elif event.key == pygame.K_SPACE:
 						self.complete = True
 						self.lc.stop()
 
-	def start( self, stopCallback = None ):
+	def start( self, stopCallback = None, a = (), kw = {} ):
 		self.client.setDataFormat( '%TS %ET %SX %SY %DX %DY %EX %EY %EZ' )
 		self.client.startDataStreaming()
 		self.client.setSizeCalibrationArea( self.width, self.height )
@@ -126,8 +143,8 @@ class Calibrator( object ):
 		self.client.setCalibrationParam( 2, 0 )
 		self.client.setCalibrationParam( 3, 1 )
 		self.client.setCalibrationCheckLevel( 3 )
-		self.client.startCalibration( 9 )
-		self.lc = LoopingCall( self._update )
+		self.client.startCalibration( 9, self.eye )
+		self.lc = LoopingCall( self._update, a, kw )
 		dd = self.lc.start( 1.0 / 30 )
 		if not stopCallback:
 			stopCallback = self.stop
@@ -139,6 +156,7 @@ class Calibrator( object ):
 
 	@d.listen( 'ET_SPL' )
 	def iViewXEvent( self, inSender, inEvent, inResponse ):
+		self.ts = int( inResponse[0] )
 		self.eye_position = map( float, inResponse[10:] )
 
 	@d.listen( 'ET_CAL' )
@@ -171,3 +189,12 @@ class Calibrator( object ):
 		self.state = 1
 		self.client.requestCalibrationResults()
 		self.client.validateCalibrationAccuracy()
+
+if __name__ == '__main__':
+	from twisted.internet import reactor
+	from pyviewx import iViewXClient
+	client = iViewXClient( '192.168.1.100', 4444 )
+	calibrator = Calibrator( client , escape = True )
+	reactor.listenUDP( 5555, client )
+	reactor.callLater( 0, calibrator.start )
+	reactor.run()
