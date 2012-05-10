@@ -148,7 +148,7 @@ class Calibrator( object ):
 		dd = self.lc.start( 1.0 / 30 )
 		if not stopCallback:
 			stopCallback = self.stop
-		dd.addCallback( stopCallback, *args, **kwargs )
+		dd.addCallback( stopCallback, self.calibrationResults, *args, **kwargs )
 
 	def stop( self, lc ):
 		self.reactor.stop()
