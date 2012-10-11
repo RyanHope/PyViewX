@@ -24,7 +24,6 @@ setup(
     ],
 	license = 'GPL-3',
 	install_requires = [
-					'setuptools',
 					'panglery',
 					'twisted'
 	],
