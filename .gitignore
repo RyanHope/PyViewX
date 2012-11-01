@@ -4,6 +4,6 @@
 .settings
 _build
 test
-PyViewX.egg-info
 build
 dist
+*.egg*

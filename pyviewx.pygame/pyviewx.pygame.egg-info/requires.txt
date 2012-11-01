@@ -1,4 +1,0 @@
-panglery
-twisted
-pygame
-pyviewx
