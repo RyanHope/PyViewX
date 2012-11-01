@@ -22,8 +22,4 @@
 .. moduleauthor:: Ryan Hope <rmh3093@gmail.com>
 """
 
-from exceptions import iViewXception
-from client import iViewXClient
-from dispatcher import Dispatcher
-
-__version__ = '0.3.4'
+__import__('pkg_resources').declare_namespace(__name__)

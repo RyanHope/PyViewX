@@ -25,9 +25,27 @@
 """
 
 from twisted.internet.protocol import DatagramProtocol
-from exceptions import iViewXception
+from panglery import Pangler
 
-class iViewXClient( DatagramProtocol ):
+class Dispatcher(Pangler):
+
+	def listen(self, event):
+		def decorator(target):
+			@self.subscribe(e=event, needs=['inResponse'])
+			def wrapper(*args, **kwargs):
+				newargs = tuple([arg for arg in args if not isinstance(arg, Pangler)])
+				return target(*newargs, **kwargs)
+			return wrapper
+		return decorator
+	
+class iViewXception( Exception ):
+	def __init__( self, cmd, error ):
+		self.cmd = cmd
+		self.error = error
+	def __str__( self ):
+		return repr( self.cmd, self.error )
+
+class iViewXClient(DatagramProtocol):
 	"""Creates an iViewXClient object which handles all communication with
 	the iViewX server
 
@@ -38,37 +56,37 @@ class iViewXClient( DatagramProtocol ):
 
 	"""
 
-	def __init__( self, remoteHost, remotePort ):
+	def __init__(self, remoteHost, remotePort):
 		self.remoteHost = remoteHost
 		self.remotePort = remotePort
 		self.dispatchers = []
 
-	def addDispatcher( self, dispatcher ):
-		self.dispatchers.append( dispatcher )
+	def addDispatcher(self, dispatcher):
+		self.dispatchers.append(dispatcher)
 
-	def addRemove( self, dispatcher ):
-		self.dispatchers.remove( dispatcher )
+	def addRemove(self, dispatcher):
+		self.dispatchers.remove(dispatcher)
 
-	def startProtocol( self ):
+	def startProtocol(self):
 		if self.remoteHost and self.remotePort:
-			self.transport.connect( self.remoteHost, self.remotePort )
+			self.transport.connect(self.remoteHost, self.remotePort)
 
-	def connectionRefused( self ):
+	def connectionRefused(self):
 		print "No one listening"
 
-	def datagramReceived( self, data, ( host, port ) ):
+	def datagramReceived(self, data, (host, port)):
 		data = data.split()
 		for d in self.dispatchers:
-			d.trigger( e = data[0], inEvent = data[0], inResponse = data[1:] )
+			d.trigger(e=data[0], inResponse=data[1:])
 
-	def _sendCommand( self, *args, **kwargs ):
-		self.transport.write( '%s\n' % ' '.join( map( str, args ) ) )
+	def _sendCommand(self, *args, **kwargs):
+		self.transport.write('%s\n' % ' '.join(map(str, args)))
 
 	#===========================================================================
 	# Calibration
 	#===========================================================================
 
-	def startCalibration( self, points, eye = 0 ):
+	def startCalibration(self, points, eye=0):
 		"""Starts a calibration. Returns calibration information is successful.
 
 		:param points: The number of calibration points; valid options are 2, 5, 9 or 13.
@@ -77,16 +95,16 @@ class iViewXClient( DatagramProtocol ):
 		:type eye: int.
 
 		"""
-		if not ( points == 2 or points == 5 or points == 9 or points == 13 ):
-			raise iViewXception( 'ET_CAL', 'Invalid points' )
-		if ( not isinstance( eye, int ) or eye < 0 or eye > 2 ):
-			raise iViewXception( 'ET_CAL', 'Invalid eye' )
-		if ( eye == 1 or eye == 2 ):
-			self._sendCommand( 'ET_CAL', points, eye )
+		if not (points == 2 or points == 5 or points == 9 or points == 13):
+			raise iViewXception('ET_CAL', 'Invalid points')
+		if (not isinstance(eye, int) or eye < 0 or eye > 2):
+			raise iViewXception('ET_CAL', 'Invalid eye')
+		if (eye == 1 or eye == 2):
+			self._sendCommand('ET_CAL', points, eye)
 		else:
-			self._sendCommand( 'ET_CAL', points )
+			self._sendCommand('ET_CAL', points)
 
-	def acceptCalibrationPoint( self ):
+	def acceptCalibrationPoint(self):
 		"""Accepts the current calibration point during the calibration process,
 		and switches to the next calibration point. Returns the number of the next
 		calibration point if successful. Available only during calibration.
@@ -95,15 +113,15 @@ class iViewXClient( DatagramProtocol ):
 		during calibration, either manually by the user or automatically.*
 
 		"""
-		self._sendCommand( 'ET_ACC' )
+		self._sendCommand('ET_ACC')
 
-	def cancelCalibration( self ):
+	def cancelCalibration(self):
 		"""Cancels the calibration procedure.
 
 		"""
-		self._sendCommand( 'ET_BRK' )
+		self._sendCommand('ET_BRK')
 
-	def getCalibrationParam( self, param ):
+	def getCalibrationParam(self, param):
 		"""Gets calibration parameters.
 
 		.. note::
@@ -113,11 +131,11 @@ class iViewXClient( DatagramProtocol ):
 		:type param: int.
 
 		"""
-		if ( param < 0 or param > 3 ):
-			raise iViewXception( 'ET_CPA', 'Invalid param' )
-		self._sendCommand( 'ET_CPA', param )
+		if (param < 0 or param > 3):
+			raise iViewXception('ET_CPA', 'Invalid param')
+		self._sendCommand('ET_CPA', param)
 
-	def setCalibrationParam( self, param, value ):
+	def setCalibrationParam(self, param, value):
 		"""Sets calibration parameters.
 
 		===== ====================== ======= =======
@@ -135,13 +153,13 @@ class iViewXClient( DatagramProtocol ):
 		:type value: int.
 
 		"""
-		if ( param < 0 or param > 3 ):
-			raise iViewXception( 'ET_CPA', 'Invalid param' )
-		if not isinstance( value, int ):
-			raise iViewXception( 'ET_CPA', 'Value not boolean' )
-		self._sendCommand( 'ET_CPA', param, value )
+		if (param < 0 or param > 3):
+			raise iViewXception('ET_CPA', 'Invalid param')
+		if not isinstance(value, int):
+			raise iViewXception('ET_CPA', 'Value not boolean')
+		self._sendCommand('ET_CPA', param, value)
 
-	def setSizeCalibrationArea( self, width, height ):
+	def setSizeCalibrationArea(self, width, height):
 		"""Sets the size of the calibration area.
 
 		*The command is sent by iViewX when the size of the calibration area is changed.*
@@ -152,28 +170,28 @@ class iViewXClient( DatagramProtocol ):
 		:type height: int.
 
 		"""
-		if not ( isinstance( width, int ) and isinstance( height, int ) and width > 0 and height > 0 ):
-			raise iViewXception( 'ET_CSZ', 'Invalid dimension' )
-		self._sendCommand( 'ET_CSZ', width, height )
+		if not (isinstance(width, int) and isinstance(height, int) and width > 0 and height > 0):
+			raise iViewXception('ET_CSZ', 'Invalid dimension')
+		self._sendCommand('ET_CSZ', width, height)
 
-	def resetCalibrationPoints( self ):
+	def resetCalibrationPoints(self):
 		"""Sets all calibration points to default positions.
 
 		"""
-		self._sendCommand( 'ET_DEF' )
+		self._sendCommand('ET_DEF')
 
-	def setCalibrationCheckLevel( self, value ):
+	def setCalibrationCheckLevel(self, value):
 		"""Sets check level for calibration. Returns the new check level is successful.
 
 		:param value: Calibration check level; valid values are 0=none, 1=weak, 2=medium or 3=strong.
 		:type value: int.
 
 		"""
-		if ( value < 0 or value > 3 ):
-			raise iViewXception( 'ET_LEV', 'Invalid value' )
-		self._sendCommand( 'ET_LEV', value )
+		if (value < 0 or value > 3):
+			raise iViewXception('ET_LEV', 'Invalid value')
+		self._sendCommand('ET_LEV', value)
 
-	def setCalibrationPoint( self, point, x, y ):
+	def setCalibrationPoint(self, point, x, y):
 		"""Sets the position of a given calibration point.
 
 		.. note::
@@ -187,11 +205,11 @@ class iViewXClient( DatagramProtocol ):
 		:type y: int.
 
 		"""
-		if not ( isinstance( point, int ) and point > 0 and point < 14 and isinstance( x, int ) and isinstance( y, int ) and x > 0 and y > 0 ):
-			raise iViewXception( 'ET_PNT', 'Invalid point' )
-		self._sendCommand( 'ET_PNT', point, x, y )
+		if not (isinstance(point, int) and point > 0 and point < 14 and isinstance(x, int) and isinstance(y, int) and x > 0 and y > 0):
+			raise iViewXception('ET_PNT', 'Invalid point')
+		self._sendCommand('ET_PNT', point, x, y)
 
-	def startDriftCorrection( self ):
+	def startDriftCorrection(self):
 		"""Starts drift correction. Drift correction is available after a
 		calibration of the system. Drift correction uses the first calibration
 		point, which is usually the center point, as calibration point.
@@ -200,9 +218,9 @@ class iViewXClient( DatagramProtocol ):
 			Only for hi-speed systems.
 
 		"""
-		self._sendCommand( 'ET_RCL' )
+		self._sendCommand('ET_RCL')
 
-	def validateCalibrationAccuracy( self ):
+	def validateCalibrationAccuracy(self):
 		"""Performs a validation of the calibration accuracy. This command is
 		available only if a successful calibration has been performed previously.
 		The result shows the accuracy of the calibration and therefore indicates
@@ -211,9 +229,9 @@ class iViewXClient( DatagramProtocol ):
 
 
 		"""
-		self._sendCommand( 'ET_VLS' )
+		self._sendCommand('ET_VLS')
 
-	def validateCalibrationAccuracyExtended( self, x, y ):
+	def validateCalibrationAccuracyExtended(self, x, y):
 		"""Performs an extended calibration validation of a single point. This
 		command is available only if a successful calibration has been performed
 		previously. THe result shows the accuracy of the calibration and therefore
@@ -226,22 +244,22 @@ class iViewXClient( DatagramProtocol ):
 		:type y: int.
 
 		"""
-		if not ( isinstance( x, int ) and isinstance( y, int ) and x > 0 and y > 0 ):
-			raise iViewXception( 'ET_VLX', 'Invalid point' )
-		self._sendCommand( 'ET_VLX', x, y )
+		if not (isinstance(x, int) and isinstance(y, int) and x > 0 and y > 0):
+			raise iViewXception('ET_VLX', 'Invalid point')
+		self._sendCommand('ET_VLX', x, y)
 
-	def requestCalibrationResults( self ):
+	def requestCalibrationResults(self):
 		"""Requests iViewX for calibration results and returns the gaze data
 		aquired for a specific calibration point.
 
 		"""
-		self._sendCommand( 'ET_RES' )
+		self._sendCommand('ET_RES')
 
 	#===========================================================================
 	# Data output
 	#===========================================================================
 
-	def setDataFormat( self, frm ):
+	def setDataFormat(self, frm):
 		"""Sets data format for data output. The syntax is similar to the 'C'
 		string formatting syntax. Each format specifier is marked by a preceding
 		percentage (%) symbol.
@@ -273,11 +291,11 @@ class iViewXClient( DatagramProtocol ):
 		:type frm: str.
 
 		"""
-		if not isinstance( frm, str ):
-			raise iViewXception( 'ET_FRM', 'Not a string' )
-		self._sendCommand( 'ET_FRM', '"%s"' % frm )
+		if not isinstance(frm, str):
+			raise iViewXception('ET_FRM', 'Not a string')
+		self._sendCommand('ET_FRM', '"%s"' % frm)
 
-	def startDataStreaming( self, framerate = 0 ):
+	def startDataStreaming(self, framerate=0):
 		"""Starts continuous data output (streaming) using the output format
 		specified with the :func:`setDataFormat` command. Optionally, the
 		frame rate can be set at which the data will be streamed.
@@ -286,46 +304,46 @@ class iViewXClient( DatagramProtocol ):
 		:type framerate: int.
 
 		"""
-		if isinstance( framerate, int ) and framerate > 0:
-			self._sendCommand( 'ET_STR', framerate = framerate )
+		if isinstance(framerate, int) and framerate > 0:
+			self._sendCommand('ET_STR', framerate=framerate)
 		else:
-			self._sendCommand( 'ET_STR' )
+			self._sendCommand('ET_STR')
 
-	def stopDataStreaming( self ):
+	def stopDataStreaming(self):
 		"""Stops continuous data output (streaming).
 
 		"""
-		self._sendCommand( 'ET_EFX' )
+		self._sendCommand('ET_EFX')
 
 	#===========================================================================
 	# Eye video image commands
 	#===========================================================================
 
-	def startEyeVideoStreaming( self ):
-		self._sendCommand( 'ET_SIM' )
+	def startEyeVideoStreaming(self):
+		self._sendCommand('ET_SIM')
 
-	def stopEyeVideoStreaming( self ):
-		self._sendCommand( 'ET_SIM' )
+	def stopEyeVideoStreaming(self):
+		self._sendCommand('ET_SIM')
 
 	#===========================================================================
 	# Online Fixation Detection
 	#===========================================================================
 
-	def startFixationProcessing( self, duration = 75, dispersion = 45 ):
-		self._sendCommand( 'ET_FIX', duration, dispersion )
+	def startFixationProcessing(self, duration=75, dispersion=45):
+		self._sendCommand('ET_FIX', duration, dispersion)
 
-	def stopFixationProcessing( self ):
-		self._sendCommand( 'ET_EFX' )
+	def stopFixationProcessing(self):
+		self._sendCommand('ET_EFX')
 
 	#===========================================================================
 	# Other
 	#===========================================================================
 
-	def autoAdjust( self ):
-		self._sendCommand( 'ET_AAD' )
+	def autoAdjust(self):
+		self._sendCommand('ET_AAD')
 
-	def getSampleRate( self ):
+	def getSampleRate(self):
 		"""Returns current sample rate.
 
 		"""
-		self._sendCommand( 'ET_SRT' )
+		self._sendCommand('ET_SRT')

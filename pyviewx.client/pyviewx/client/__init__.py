@@ -1,4 +1,4 @@
-# -*- coding:	utf-8 -*-
+# -*- coding:    utf-8 -*-
 #===============================================================================
 # This file is part of PyViewX.
 # Copyright (C) 2012 Ryan Hope <rmh3093@gmail.com>
@@ -17,14 +17,4 @@
 # along with PyViewX.  If not, see <http://www.gnu.org/licenses/>.
 #===============================================================================
 
-from panglery import Pangler
-
-class Dispatcher( Pangler ):
-
-	def listen( self, event ):
-		def decorator( target ):
-			@self.subscribe( e = event, needs = ['inEvent', 'inResponse'] )
-			def wrapper( *args, **kwargs ):
-				return target( *args, **kwargs )
-			return wrapper
-		return decorator
+from client import Dispatcher, iViewXception, iViewXClient

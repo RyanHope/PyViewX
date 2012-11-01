@@ -1,0 +1,10 @@
+README.rst
+setup.py
+pyviewx.client.egg-info/PKG-INFO
+pyviewx.client.egg-info/SOURCES.txt
+pyviewx.client.egg-info/dependency_links.txt
+pyviewx.client.egg-info/namespace_packages.txt
+pyviewx.client.egg-info/requires.txt
+pyviewx.client.egg-info/top_level.txt
+pyviewx/client/__init__.py
+pyviewx/client/client.py

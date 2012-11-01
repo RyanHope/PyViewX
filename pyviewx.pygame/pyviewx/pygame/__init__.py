@@ -1,4 +1,4 @@
-# -*- coding:	utf-8 -*-
+# -*- coding:    utf-8 -*-
 #===============================================================================
 # This file is part of PyViewX.
 # Copyright (C) 2012 Ryan Hope <rmh3093@gmail.com>
@@ -17,9 +17,4 @@
 # along with PyViewX.  If not, see <http://www.gnu.org/licenses/>.
 #===============================================================================
 
-"""Helper functions for performing calibrations in PyGame.
-
-.. moduleauthor:: Ryan Hope <rmh3093@gmail.com>
-"""
-
-from calibration import Calibrator
+from calibrator import Calibrator

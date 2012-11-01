@@ -1,0 +1,27 @@
+Metadata-Version: 1.1
+Name: pyviewx.pygame
+Version: 0.4.0
+Summary: A pygame calibration scene for use with PyViewX
+Home-page: https://github.com/RyanHope/PyViewX
+Author: Ryan Hope
+Author-email: rmh3093@gmail.com
+License: GPL-3
+Description: Here's a basic example of usage::
+        
+        	from pyviewx.client import iViewXClient
+        	from pyviewx.pygame import Calibrator
+        	from twisted.internet import reactor
+        
+        	client = iViewXClient('192.168.1.100', 4444)
+        	calibrator = Calibrator(client, reactor = reactor)
+        	reactor.listenUDP(5555, client)
+        	reactor.callLater(0, calibrator.start)
+        	reactor.run()
+        
+Platform: UNKNOWN
+Classifier: License :: OSI Approved :: GNU General Public License (GPL)
+Classifier: Framework :: Twisted
+Classifier: Programming Language :: Python :: 2
+Classifier: Topic :: Scientific/Engineering
+Classifier: Topic :: Utilities
+Classifier: Topic :: Software Development :: Libraries :: pygame
