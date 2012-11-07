@@ -56,7 +56,7 @@ class iViewXClient(DatagramProtocol):
 
 	"""
 
-	def __init__(self, remoteHost, remotePort, on_connection_refused):
+	def __init__(self, remoteHost, remotePort, on_connection_refused=None):
 		self.remoteHost = remoteHost
 		self.remotePort = remotePort
 		self.on_connection_refused = on_connection_refused
@@ -73,7 +73,8 @@ class iViewXClient(DatagramProtocol):
 			self.transport.connect(self.remoteHost, self.remotePort)
 
 	def connectionRefused(self):
-		self.on_connection_refused()
+		if self.on_connection_refused:
+			self.on_connection_refused()
 
 	def datagramReceived(self, data, (host, port)):
 		data = data.split()
