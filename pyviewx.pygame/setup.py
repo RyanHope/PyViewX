@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 import os.path
 
-__version__ = '0.4.0'
+__version__ = '0.4.1'
 
 descr_file = os.path.join(os.path.dirname(__file__), 'README.rst')
 
@@ -30,6 +30,6 @@ setup(
 					'panglery',
 					'twisted',
                     'pygame',
-                    'pyviewx'
+                    'pyviewx >= 0.4.3'
 	],
  )
