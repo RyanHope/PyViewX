@@ -325,7 +325,7 @@ class iViewXClient(DatagramProtocol):
 		self._sendCommand('ET_SIM')
 
 	def stopEyeVideoStreaming(self):
-		self._sendCommand('ET_SIM')
+		self._sendCommand('ET_EIM')
 
 	#===========================================================================
 	# Online Fixation Detection
