@@ -62,7 +62,8 @@ class iViewXClient(DatagramProtocol):
 		self.dispatchers = []
 
 	def addDispatcher(self, dispatcher):
-		self.dispatchers.append(dispatcher)
+		if not dispatcher in self.dispatchers:
+			self.dispatchers.append(dispatcher)
 
 	def removeDispatcher(self, dispatcher):
 		self.dispatchers.remove(dispatcher)
