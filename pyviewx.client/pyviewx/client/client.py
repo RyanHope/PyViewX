@@ -66,7 +66,8 @@ class iViewXClient(DatagramProtocol):
 			self.dispatchers.append(dispatcher)
 
 	def removeDispatcher(self, dispatcher):
-		self.dispatchers.remove(dispatcher)
+		if dispatcher in self.dispatchers:
+			self.dispatchers.remove(dispatcher)
 
 	def startProtocol(self):
 		if self.remoteHost and self.remotePort:
