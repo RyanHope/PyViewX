@@ -69,10 +69,6 @@ class iViewXClient(DatagramProtocol):
 		if dispatcher in self.dispatchers:
 			self.dispatchers.remove(dispatcher)
 
-	def startProtocol(self):
-		if self.remoteHost and self.remotePort:
-			self.transport.connect(self.remoteHost, self.remotePort)
-
 	def connectionRefused(self):
 		for d in self.dispatchers:
 			d.trigger(e="CONNECTION_REFUSED", inResponse=None)
@@ -83,7 +79,7 @@ class iViewXClient(DatagramProtocol):
 			d.trigger(e=data[0], inResponse=data[1:])
 
 	def _sendCommand(self, *args, **kwargs):
-		self.transport.write('%s\n' % ' '.join(map(str, args)))
+		self.transport.write('%s\n' % ' '.join(map(str, args)), (self.remoteHost, self.remotePort))
 
 	#===========================================================================
 	# Calibration
