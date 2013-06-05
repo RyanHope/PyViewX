@@ -17,4 +17,5 @@
 # along with PyViewX.  If not, see <http://www.gnu.org/licenses/>.
 #===============================================================================
 
-from calibrator import Calibrator, CalibratorGL
+from calibrator import Calibrator
+from calibratorGL import CalibratorGL
