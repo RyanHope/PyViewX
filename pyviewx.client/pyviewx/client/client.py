@@ -312,7 +312,7 @@ class iViewXClient(DatagramProtocol):
 		"""Stops continuous data output (streaming).
 
 		"""
-		self._sendCommand('ET_EFX')
+		self._sendCommand('ET_EST')
 
 	#===========================================================================
 	# Eye video image commands
