@@ -123,14 +123,15 @@ class Calibrator(object):
 						self.complete = True
 						self.lc.stop()
 
-	def start(self, stopCallback, *args, **kwargs):
+	def start(self, stopCallback, wait=1, randomize=1, auto=0, speed=1, level=3, *args, **kwargs):
 		self.client.setDataFormat('%TS %ET %SX %SY %DX %DY %EX %EY %EZ')
 		self.client.startDataStreaming()
 		self.client.setSizeCalibrationArea(self.width, self.height)
-		self.client.setCalibrationParam(1, 1)
-		self.client.setCalibrationParam(2, 0)
-		self.client.setCalibrationParam(3, 1)
-		self.client.setCalibrationCheckLevel(3)
+		self.client.setCalibrationParam(0, wait)
+		self.client.setCalibrationParam(1, randomize)
+		self.client.setCalibrationParam(2, auto)
+		self.client.setCalibrationParam(3, speed)
+		self.client.setCalibrationCheckLevel(level)
 		self.client.startCalibration(9, self.eye)
 		self.lc = LoopingCall(self._update)
 		dd = self.lc.start(1.0 / 30)
