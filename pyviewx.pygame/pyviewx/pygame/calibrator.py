@@ -35,12 +35,7 @@ class Calibrator(object):
 		self.escape = escape
 		self.client = client
 		self.client.addDispatcher(self.d)
-		if screen:
-			self.screen = screen
-		else:
-			pygame.display.init()
-			pygame.font.init()
-			self.screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
+		self._init_screen(screen)
 		self.width, self.height = self.screen.get_size()
 		self.center_x = int(self.width / 2)
 		self.center_y = int(self.height / 2)
@@ -56,6 +51,14 @@ class Calibrator(object):
 		self.lc = None
 		self._reset()
 
+	def _init_screen(self):
+		if screen:
+			self.screen = screen
+		else:
+			pygame.display.init()
+			pygame.font.init()
+			self.screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
+
 	def _reset(self):
 		self.eye_position = ()
 		self.calibrationResults = []
@@ -69,7 +72,7 @@ class Calibrator(object):
 		tr.center = loc
 		self.worldsurf.blit(t, tr)
 
-	def _update(self):
+	def _display(self):
 		self.worldsurf.fill((51, 51, 153))
 		if self.state == 0:
 			r = pygame.Rect(0, 0, 0, 0)
@@ -103,6 +106,9 @@ class Calibrator(object):
 				self._draw_text("Press 'R' to recalibrate, press 'Space Bar' to continue...", f, (255, 255, 255), (self.center_x, self.height - 60))
 		self.screen.blit(self.worldsurf, self.worldsurf_rect)
 		pygame.display.flip()
+
+	def _update(self):
+		self._display()
 		self.spinnerIndex += 1
 		if self.spinnerIndex == 12:
 			self.spinnerIndex = 0

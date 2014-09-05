@@ -24,46 +24,15 @@ import pygl2d
 
 def mean(l): return sum(l) / len(l)
 
-class CalibratorGL(object):
+class CalibratorGL(Calibrator):
 
-	d = Dispatcher()
-
-	def __init__(self, client, screen=None, escape=False, reactor=None, eye=0):
-		if reactor is None:
-			from twisted.internet import reactor
-		self.eye = eye
-		self.reactor = reactor
-		self.escape = escape
-		self.client = client
-		self.client.addDispatcher(self.d)
+	def _init_screen(self):
 		if screen:
 			self.screen = screen
 		else:
 			pygame.display.init()
 			pygame.font.init()
-			self.screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
-		self.width, self.height = self.screen.get_size()
-		self.center_x = int(self.width / 2)
-		self.center_y = int(self.height / 2)
-
-		self.screen_size = (self.width, self.height)
-		self.worldsurf_rect = pygame.rect.Rect(0, 0, self.width, self.height)
-
-		self.spinner = ['|', '|', '|', '/', '/', '/', '-', '-', '-', '\\', '\\', '\\']
-		self.spinnerIndex = 0
-
-		pygame.mouse.set_visible(False)
-
-		self.complete = False
-		self.lc = None
-		self._reset()
-
-	def _reset(self):
-		self.eye_position = ()
-		self.calibrationResults = []
-		self.calibrationPoints = []
-		self.currentPoint = -1
-		self.state = 0
+			self.screen = pygl2d.display.set_mode((0, 0), pygame.FULLSCREEN | pygame.DOUBLEBUF)
 
 	def _draw_text(self, text, font, color, loc):
 		t = pygl2d.font.RenderText(text, color, font)
@@ -71,9 +40,9 @@ class CalibratorGL(object):
 		tr.center = loc
 		t.draw(tr.topleft)
 
-	def _update(self):
-                pygl2d.display.begin_draw(self.screen_size)
-                pygl2d.draw.rect(self.worldsurf_rect, (51, 51, 153))
+	def _display(self):
+        pygl2d.display.begin_draw(self.screen_size)
+        pygl2d.draw.rect(self.worldsurf_rect, (51, 51, 153))
 		if self.state == 0:
 			r = pygame.Rect(0, 0, 0, 0)
 			r.width = int((40 * self.width) / 100)
@@ -104,79 +73,4 @@ class CalibratorGL(object):
 				if len(self.calibrationResults) > 1:
 					self._draw_text(' '.join(self.calibrationResults[1]), f, (255, 255, 255), (self.center_x, self.center_y + 30))
 				self._draw_text("Press 'R' to recalibrate, press 'Space Bar' to continue...", f, (255, 255, 255), (self.center_x, self.height - 60))
-                pygl2d.display.end_draw()	
-		self.spinnerIndex += 1
-		if self.spinnerIndex == 12:
-			self.spinnerIndex = 0
-		for event in pygame.event.get():
-			if event.type == pygame.KEYDOWN:
-				if self.escape and event.key == pygame.K_ESCAPE:
-					if self.lc:
-						self.lc.stop()
-						return
-				if self.state == 0:
-					if event.key == pygame.K_SPACE:
-						self.client.acceptCalibrationPoint()
-				elif self.state == 2:
-					if event.key == pygame.K_r:
-						self._reset()
-						self.client.startCalibration(9, self.eye)
-					elif event.key == pygame.K_SPACE:
-						self.complete = True
-						self.lc.stop()
-
-	def start(self, stopCallback, wait=1, randomize=1, auto=0, speed=1, level=3, *args, **kwargs):
-		self.client.setDataFormat('%TS %ET %SX %SY %DX %DY %EX %EY %EZ')
-		self.client.startDataStreaming()
-		self.client.setSizeCalibrationArea(self.width, self.height)
-		self.client.setCalibrationParam(0, wait)
-		self.client.setCalibrationParam(1, randomize)
-		self.client.setCalibrationParam(2, auto)
-		self.client.setCalibrationParam(3, speed)
-		self.client.setCalibrationCheckLevel(level)
-		self.client.startCalibration(9, self.eye)
-		self.lc = LoopingCall(self._update)
-		dd = self.lc.start(1.0 / 30)
-		if not stopCallback:
-			stopCallback = self.stop
-		dd.addCallback(stopCallback, self.calibrationResults, *args, **kwargs)
-
-	def stop(self, lc):
-		self.reactor.stop()
-		pygame.quit()
-
-	@d.listen('ET_SPL')
-	def iViewXEvent(self, inResponse):
-		self.ts = int(inResponse[0])
-		self.eye_position = map(float, inResponse[10:])
-
-	@d.listen('ET_CAL')
-	def iViewXEvent(self, inResponse):
-		self.calibrationPoints = [None] * int(inResponse[0])
-
-	@d.listen('ET_CSZ')
-	def iViewXEvent(self, inResponse):
-		pass
-
-	@d.listen('ET_PNT')
-	def iViewXEvent(self, inResponse):
-		self.calibrationPoints[int(inResponse[0]) - 1] = (int(inResponse[1]), int(inResponse[2]))
-
-	@d.listen('ET_CHG')
-	def iViewXEvent(self, inResponse):
-		self.currentPoint = int(inResponse[0]) - 1
-
-	@d.listen('ET_VLS')
-	def iViewXEvent(self, inResponse):
-		self.state = 2
-		self.calibrationResults.append(inResponse)
-
-	@d.listen('ET_CSP')
-	def iViewXEvent(self, inResponse):
-		pass
-
-	@d.listen('ET_FIN')
-	def iViewXEvent(self, inResponse):
-		self.state = 1
-		self.client.requestCalibrationResults()
-		self.client.validateCalibrationAccuracy()
+        pygl2d.display.end_draw()
