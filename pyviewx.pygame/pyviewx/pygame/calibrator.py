@@ -51,7 +51,7 @@ class Calibrator(object):
 		self.lc = None
 		self._reset()
 
-	def _init_screen(self):
+	def _init_screen(self, screen):
 		if screen:
 			self.screen = screen
 		else:

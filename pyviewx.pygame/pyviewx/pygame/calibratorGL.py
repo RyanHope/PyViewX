@@ -22,6 +22,8 @@ from twisted.internet.task import LoopingCall
 import pygame
 import pygl2d
 
+from .calibrator import Calibrator
+
 def mean(l): return sum(l) / len(l)
 
 class CalibratorGL(Calibrator):
