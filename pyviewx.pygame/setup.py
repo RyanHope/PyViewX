@@ -1,14 +1,14 @@
 from setuptools import setup, find_packages
 import os.path
 
-__version__ = '0.5.1'
+__version__ = '0.5.2'
 
 descr_file = os.path.join(os.path.dirname(__file__), 'README.rst')
 
 setup(
     name='pyviewx.pygame',
     version=__version__,
-    
+
     namespace_packages=['pyviewx'],
     packages=['pyviewx.pygame'],
 
