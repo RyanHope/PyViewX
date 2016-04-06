@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 import os.path
 
-__version__ = '0.5.2'
+__version__ = '0.5.3'
 
 descr_file = os.path.join(os.path.dirname(__file__), 'README.rst')
 

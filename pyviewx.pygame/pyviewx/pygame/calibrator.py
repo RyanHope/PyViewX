@@ -182,5 +182,4 @@ class Calibrator(object):
 	@d.listen('ET_FIN')
 	def iViewXEvent(self, inResponse):
 		self.state = 1
-		self.client.requestCalibrationResults()
 		self.client.validateCalibrationAccuracy()
